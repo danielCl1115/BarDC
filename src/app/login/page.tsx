@@ -4,6 +4,7 @@ import { useActionState } from "react";
 import { login } from "./actions";
 import { SubmitButton } from "@/components/submit-button";
 import { Field, inputClass } from "@/components/ui";
+import { LogoBadge } from "@/components/logo";
 import type { ActionState } from "@/lib/action";
 
 export default function LoginPage() {
@@ -12,10 +13,10 @@ export default function LoginPage() {
   return (
     <main className="flex flex-1 items-center justify-center px-4">
       <div className="w-full max-w-sm">
-        <h1 className="text-center text-lg font-semibold text-ink">
-          Inventario y Cuentas
-        </h1>
-        <p className="mt-1 text-center text-sm text-ink-2">
+        <div className="flex justify-center">
+          <LogoBadge size={128} />
+        </div>
+        <p className="mt-3 text-center text-sm text-ink-2">
           Inicia sesión para continuar
         </p>
 

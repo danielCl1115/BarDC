@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Inventario y Cuentas",
-  description: "Sistema de inventario, cuentas y ventas",
+  title: "La Esquina — Inventario y Cuentas",
+  description: "Bar de barrio — sistema de inventario, cuentas y ventas",
 };
 
 export default function RootLayout({

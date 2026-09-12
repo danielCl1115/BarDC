@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { logout } from "@/app/login/actions";
 import { Icon, type IconName } from "@/components/icons";
+import { LogoMark } from "@/components/logo";
 import type { Rol } from "@/lib/types";
 
 const LINKS: { href: string; label: string; icon: IconName; roles: Rol[] }[] = [
@@ -24,14 +25,11 @@ export function Nav({ nombre, rol }: { nombre: string; rol: Rol }) {
 
   return (
     <aside className="flex w-full shrink-0 flex-col border-b border-ink/8 bg-surface md:h-dvh md:w-60 md:border-b-0 md:border-r">
-      <div className="flex items-center gap-2 px-4 py-4">
-        <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-500 text-sm font-bold text-white">
-          IC
-        </span>
+      <div className="flex items-center gap-2.5 px-4 py-4">
+        <LogoMark size={34} className="shrink-0" />
         <div className="min-w-0">
-          <div className="truncate text-sm font-semibold text-ink">
-            Inventario y Cuentas
-          </div>
+          <div className="truncate text-sm font-semibold text-ink">La Esquina</div>
+          <div className="truncate text-[11px] text-ink-3">Inventario y Cuentas</div>
         </div>
       </div>
 
