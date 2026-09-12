@@ -63,6 +63,15 @@ export interface Compra {
   created_at: string;
 }
 
+export interface CompraItem {
+  id: string;
+  compra_id: string;
+  producto_id: string;
+  cantidad: number;
+  costo_unitario: number;
+  subtotal: number;
+}
+
 export interface MovimientoInventario {
   id: string;
   producto_id: string;
