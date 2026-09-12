@@ -1,32 +1,38 @@
 import { requireAdmin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
-import { Card, Empty, PageHeader } from "@/components/ui";
+import { Card, Empty, PageHeader, StatTile } from "@/components/ui";
 import { fmtMoney, fmtFecha } from "@/lib/format";
+import { hoyYMD, primerDiaMes, inicioDiaUTC } from "@/lib/tz";
 import { CompraForm } from "./compra-form";
 import type { Compra, Producto } from "@/lib/types";
 
 export default async function ComprasPage() {
   await requireAdmin();
   const supabase = await createClient();
+  const desdeMes = inicioDiaUTC(primerDiaMes(hoyYMD())).toISOString();
 
-  const [{ data: productosData }, { data: comprasData }] = await Promise.all([
-    supabase
-      .from("productos")
-      .select("id, nombre, costo")
-      .eq("activo", true)
-      .order("nombre"),
-    supabase
-      .from("compras")
-      .select("*")
-      .order("created_at", { ascending: false })
-      .limit(20),
-  ]);
+  const [{ data: productosData }, { data: comprasData }, { data: mesData }] =
+    await Promise.all([
+      supabase
+        .from("productos")
+        .select("id, nombre, costo")
+        .eq("activo", true)
+        .order("nombre"),
+      supabase
+        .from("compras")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(20),
+      supabase.from("compras").select("total").gte("created_at", desdeMes),
+    ]);
 
   const productos = (productosData ?? []) as Pick<
     Producto,
     "id" | "nombre" | "costo"
   >[];
   const compras = (comprasData ?? []) as Compra[];
+  const comprasMes = (mesData ?? []) as Pick<Compra, "total">[];
+  const totalMes = comprasMes.reduce((s, c) => s + Number(c.total), 0);
 
   return (
     <>
@@ -34,6 +40,11 @@ export default async function ComprasPage() {
         title="Compras"
         description="Registrar entradas de inventario. Suma stock y actualiza el costo."
       />
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        <StatTile label="Compras este mes" value={comprasMes.length} icon="truck" />
+        <StatTile label="Invertido este mes" value={fmtMoney(totalMes)} />
+      </div>
 
       <Card title="Nueva compra">
         {productos.length === 0 ? (

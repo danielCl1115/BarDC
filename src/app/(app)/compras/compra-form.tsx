@@ -3,7 +3,8 @@
 import { useActionState, useEffect, useMemo, useState } from "react";
 import { registrarCompra } from "./actions";
 import { SubmitButton } from "@/components/submit-button";
-import { Field, inputClass } from "@/components/ui";
+import { Field, inputClass, buttonVariants } from "@/components/ui";
+import { Icon } from "@/components/icons";
 import { useToast } from "@/components/toast";
 import { fmtMoney } from "@/lib/format";
 import type { ActionState } from "@/lib/action";
@@ -61,11 +62,13 @@ export function CompraForm({ productos }: { productos: ProductoOpcion[] }) {
         </Field>
       </div>
 
-      <div className="space-y-2">
+      <div className="space-y-2 rounded-lg border border-ink/8 bg-plane p-3">
         {renglones.map((r, i) => (
-          <div key={i} className="flex flex-wrap items-end gap-2">
-            <label className="text-xs">
-              <span className="block text-ink-2">Producto</span>
+          <div
+            key={i}
+            className="flex flex-wrap items-end gap-2 rounded-lg border border-ink/8 bg-surface p-3"
+          >
+            <Field label="Producto" className="min-w-52 flex-1">
               <select
                 value={r.producto_id}
                 onChange={(e) => {
@@ -75,7 +78,7 @@ export function CompraForm({ productos }: { productos: ProductoOpcion[] }) {
                     costo_unitario: prod ? prod.costo : r.costo_unitario,
                   });
                 }}
-                className={`${inputClass} min-w-52`}
+                className={inputClass}
               >
                 <option value="">Elegir...</option>
                 {productos.map((p) => (
@@ -84,20 +87,18 @@ export function CompraForm({ productos }: { productos: ProductoOpcion[] }) {
                   </option>
                 ))}
               </select>
-            </label>
-            <label className="text-xs">
-              <span className="block text-ink-2">Cantidad</span>
+            </Field>
+            <Field label="Cantidad" className="w-24">
               <input
                 type="number"
                 min="0"
                 step="0.001"
                 value={r.cantidad}
                 onChange={(e) => set(i, { cantidad: Number(e.target.value) })}
-                className={`${inputClass} w-24`}
+                className={inputClass}
               />
-            </label>
-            <label className="text-xs">
-              <span className="block text-ink-2">Costo unitario</span>
+            </Field>
+            <Field label="Costo unitario" className="w-28">
               <input
                 type="number"
                 min="0"
@@ -106,36 +107,41 @@ export function CompraForm({ productos }: { productos: ProductoOpcion[] }) {
                 onChange={(e) =>
                   set(i, { costo_unitario: Number(e.target.value) })
                 }
-                className={`${inputClass} w-28`}
+                className={inputClass}
               />
-            </label>
-            <span className="pb-2 text-sm text-ink-2">
-              {fmtMoney(r.cantidad * r.costo_unitario)}
-            </span>
-            {renglones.length > 1 ? (
+            </Field>
+            <div className="flex items-center gap-2 pb-2">
+              <span className="min-w-24 text-right text-sm font-medium text-ink">
+                {fmtMoney(r.cantidad * r.costo_unitario)}
+              </span>
               <button
                 type="button"
                 onClick={() =>
                   setRenglones((prev) => prev.filter((_, idx) => idx !== i))
                 }
-                className="pb-2 text-xs text-crit hover:underline"
+                disabled={renglones.length === 1}
+                title="Quitar renglón"
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-ink-3 hover:bg-crit/10 hover:text-crit disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-ink-3"
               >
-                Quitar
+                <Icon name="trash" size={15} />
               </button>
-            ) : null}
+            </div>
           </div>
         ))}
         <button
           type="button"
           onClick={() => setRenglones((prev) => [...prev, { ...RENGLON_VACIO }])}
-          className="text-sm text-ink-2 hover:underline"
+          className={`inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${buttonVariants.secondary}`}
         >
-          + Agregar renglón
+          <Icon name="plus" size={15} />
+          Agregar renglón
         </button>
       </div>
 
-      <div className="flex items-center gap-3 border-t border-ink/8 pt-3">
-        <span className="text-sm font-medium">Total: {fmtMoney(total)}</span>
+      <div className="flex flex-wrap items-center justify-between gap-3 border-t border-ink/8 pt-4">
+        <span className="text-sm font-semibold uppercase tracking-wide text-ink-2">
+          Total: <span className="text-lg text-ink">{fmtMoney(total)}</span>
+        </span>
         <SubmitButton pendingText="Registrando..." icon="plus">
           Registrar compra
         </SubmitButton>
