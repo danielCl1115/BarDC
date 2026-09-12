@@ -11,8 +11,9 @@ export const config = {
     /*
      * Todas las rutas menos:
      * - _next/static, _next/image  (assets de Next)
-     * - favicon y archivos de imagen
+     * - favicon, manifest e íconos (los necesita el navegador/celular sin sesión)
+     * - archivos de imagen
      */
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|apple-icon|icon|manifest.webmanifest|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };
