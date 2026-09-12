@@ -11,18 +11,29 @@ export default function LoginPage() {
   const [state, formAction] = useActionState<ActionState, FormData>(login, null);
 
   return (
-    <main className="flex flex-1 items-center justify-center px-4">
-      <div className="w-full max-w-sm">
+    <main
+      className="relative flex flex-1 items-center justify-center overflow-hidden px-4 py-12"
+      style={{ background: "radial-gradient(circle at 50% 0%, #24503a 0%, #0f2118 68%)" }}
+    >
+      <div
+        className="pointer-events-none absolute inset-0 opacity-[0.05]"
+        style={{
+          backgroundImage:
+            "repeating-linear-gradient(0deg, #f4ecd8 0px, #f4ecd8 1px, transparent 1px, transparent 3px)",
+        }}
+      />
+
+      <div className="relative w-full max-w-sm">
         <div className="flex justify-center">
-          <LogoBadge size={128} />
+          <LogoBadge size={132} />
         </div>
-        <p className="mt-3 text-center text-sm text-ink-2">
+        <p className="mt-4 text-center text-[11px] font-medium uppercase tracking-[0.3em] text-[#e7ddc4]/70">
           Inicia sesión para continuar
         </p>
 
         <form
           action={formAction}
-          className="mt-6 space-y-4 rounded-lg border border-ink/8 bg-surface p-6 shadow-sm"
+          className="mt-7 space-y-4 rounded-2xl border border-[#a97b2f]/25 bg-[#f8f2e2] p-7 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.55)]"
         >
           <Field label="Correo">
             <input
@@ -50,12 +61,15 @@ export default function LoginPage() {
             </p>
           ) : null}
 
-          <SubmitButton pendingText="Entrando..." className="w-full">
+          <SubmitButton
+            pendingText="Entrando..."
+            className="w-full !bg-[#1c3829] !text-[#f4ecd8] hover:!bg-[#16301f]"
+          >
             Entrar
           </SubmitButton>
         </form>
 
-        <p className="mt-4 text-center text-xs text-ink-3">
+        <p className="mt-5 text-center text-xs text-[#e7ddc4]/50">
           ¿Sin usuario? El administrador los crea desde la pantalla de Usuarios.
         </p>
       </div>
