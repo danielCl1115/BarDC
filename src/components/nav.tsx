@@ -24,7 +24,7 @@ export function Nav({ nombre, rol }: { nombre: string; rol: Rol }) {
   const inicial = nombre.trim().charAt(0).toUpperCase() || "?";
 
   return (
-    <aside className="flex w-full shrink-0 flex-col border-b border-ink/8 bg-surface md:h-dvh md:w-60 md:border-b-0 md:border-r">
+    <aside className="flex w-full shrink-0 flex-col border-b border-ink/8 bg-surface print:hidden md:h-dvh md:w-60 md:border-b-0 md:border-r">
       <div className="flex items-center gap-2.5 px-4 py-4">
         <LogoMark size={34} className="shrink-0" />
         <div className="min-w-0">

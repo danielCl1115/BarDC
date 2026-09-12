@@ -449,6 +449,61 @@ begin
 end;
 $$;
 
+-- 6.4b  Reabrir una cuenta ya cerrada (solo admin) -------------------------
+--       Corrige un cobro mal hecho: devuelve el inventario descontado al
+--       cerrar y la deja "abierta" otra vez para editar y volver a cerrar.
+create or replace function public.reabrir_cuenta(p_cuenta_id uuid)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_cta   public.cuentas%rowtype;
+  v_item  record;
+  v_nuevo numeric(12,3);
+begin
+  if not public.es_admin() then
+    raise exception 'Solo un administrador puede reabrir una cuenta';
+  end if;
+
+  select * into v_cta from public.cuentas where id = p_cuenta_id for update;
+  if not found then raise exception 'La cuenta no existe'; end if;
+  if v_cta.estado <> 'cerrada' then raise exception 'La cuenta no está cerrada'; end if;
+
+  for v_item in
+    select producto_id, nombre_producto, sum(cantidad) as cantidad
+    from public.cuenta_items
+    where cuenta_id = p_cuenta_id
+    group by producto_id, nombre_producto
+  loop
+    update public.productos set stock = stock + v_item.cantidad
+    where id = v_item.producto_id
+    returning stock into v_nuevo;
+
+    insert into public.movimientos_inventario
+      (producto_id, tipo, cantidad, stock_resultante, referencia, nota, creado_por)
+    values
+      (v_item.producto_id, 'ajuste', v_item.cantidad, v_nuevo, p_cuenta_id::text,
+       'Reapertura de cuenta ' || v_cta.nombre_cliente, auth.uid());
+  end loop;
+
+  update public.cuentas
+  set estado             = 'abierta',
+      metodo_pago        = null,
+      pago_efectivo      = 0,
+      pago_transferencia = 0,
+      cerrada_por        = null,
+      cerrada_en         = null
+  where id = p_cuenta_id;
+
+  perform public.registrar_historial('reabrir_cuenta', 'cuenta', p_cuenta_id,
+    jsonb_build_object('cliente', v_cta.nombre_cliente, 'total', v_cta.total));
+end;
+$$;
+
+grant execute on function public.reabrir_cuenta(uuid) to authenticated;
+
 -- 6.5  Registrar compra  (solo admin) -------------------------------------
 --      p_items: [{ "producto_id": "...", "cantidad": 10, "costo_unitario": 1800 }, ...]
 create or replace function public.registrar_compra(

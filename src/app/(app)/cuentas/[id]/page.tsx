@@ -6,6 +6,7 @@ import { fmtFecha } from "@/lib/format";
 import { ProductGrid } from "./product-grid";
 import { Ticket } from "./ticket";
 import { Receipt } from "./receipt";
+import { ReabrirCuenta } from "./reabrir-cuenta";
 import type { Cuenta, CuentaItem, Producto } from "@/lib/types";
 
 export default async function CuentaDetallePage({
@@ -14,7 +15,7 @@ export default async function CuentaDetallePage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  await requirePerfil();
+  const perfil = await requirePerfil();
   const supabase = await createClient();
 
   const { data: cuentaData } = await supabase
@@ -50,18 +51,20 @@ export default async function CuentaDetallePage({
 
   return (
     <>
-      <PageHeader
-        title={cuenta.nombre_cliente}
-        description={
-          abierta
-            ? `Abierta ${fmtFecha(cuenta.abierta_en)}`
-            : `Cerrada ${fmtFecha(cuenta.cerrada_en)}`
-        }
-      >
-        <Button href="/cuentas" variant="secondary" icon="arrowLeft">
-          Volver
-        </Button>
-      </PageHeader>
+      <div className="print:hidden">
+        <PageHeader
+          title={cuenta.nombre_cliente}
+          description={
+            abierta
+              ? `Abierta ${fmtFecha(cuenta.abierta_en)}`
+              : `Cerrada ${fmtFecha(cuenta.cerrada_en)}`
+          }
+        >
+          <Button href="/cuentas" variant="secondary" icon="arrowLeft">
+            Volver
+          </Button>
+        </PageHeader>
+      </div>
 
       {abierta ? (
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
@@ -84,7 +87,14 @@ export default async function CuentaDetallePage({
           </div>
         </div>
       ) : (
-        <Receipt cuenta={cuenta} items={items} />
+        <>
+          <Receipt cuenta={cuenta} items={items} />
+          {perfil.rol === "admin" ? (
+            <div className="mx-auto mt-4 flex w-full max-w-sm justify-end print:hidden">
+              <ReabrirCuenta cuentaId={id} nombreCliente={cuenta.nombre_cliente} />
+            </div>
+          ) : null}
+        </>
       )}
     </>
   );

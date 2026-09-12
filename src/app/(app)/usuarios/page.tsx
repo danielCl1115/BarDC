@@ -5,6 +5,7 @@ import { Card, Empty, PageHeader, Badge } from "@/components/ui";
 import { ToggleSwitch } from "@/components/toggle-switch";
 import { Icon } from "@/components/icons";
 import { NuevoUsuario } from "./nuevo-usuario";
+import { ResetearPassword } from "./reset-password";
 import { cambiarRol, toggleUsuarioActivo } from "./actions";
 import type { Perfil } from "@/lib/types";
 
@@ -61,13 +62,15 @@ export default async function UsuariosPage() {
                 <col />
                 <col className="w-52" />
                 <col className="w-28" />
+                <col className="w-12" />
               </colgroup>
               <thead>
                 <tr className="text-left text-ink-3">
                   <th className="pb-2 pr-4 font-medium">Nombre</th>
                   <th className="pb-2 pr-4 font-medium">Correo</th>
                   <th className="pb-2 pr-4 font-medium">Rol</th>
-                  <th className="pb-2 font-medium">Activo</th>
+                  <th className="pb-2 pr-4 font-medium">Activo</th>
+                  <th className="pb-2 font-medium" />
                 </tr>
               </thead>
               <tbody>
@@ -108,7 +111,7 @@ export default async function UsuariosPage() {
                         </form>
                       )}
                     </td>
-                    <td className="py-3">
+                    <td className="py-3 pr-4">
                       {p.id === yo.id ? (
                         <Badge tone="good">Activo</Badge>
                       ) : (
@@ -127,6 +130,11 @@ export default async function UsuariosPage() {
                           </span>
                         </form>
                       )}
+                    </td>
+                    <td className="py-3">
+                      {isAdminClientConfigured ? (
+                        <ResetearPassword id={p.id} nombre={p.nombre} />
+                      ) : null}
                     </td>
                   </tr>
                 ))}

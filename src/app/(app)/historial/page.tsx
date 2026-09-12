@@ -12,6 +12,7 @@ const ACCION_META: Record<string, { etiqueta: string; icon: IconName; tono: keyo
   quitar_item: { etiqueta: "Quitó producto", icon: "trash", tono: "crit" },
   actualizar_cantidad: { etiqueta: "Actualizó cantidad", icon: "pencil", tono: "brand" },
   cerrar_cuenta: { etiqueta: "Cerró cuenta", icon: "check", tono: "good" },
+  reabrir_cuenta: { etiqueta: "Reabrió cuenta", icon: "undo", tono: "warn" },
   registrar_compra: { etiqueta: "Registró compra", icon: "truck", tono: "brand" },
   ajustar_inventario: { etiqueta: "Ajustó inventario", icon: "layers", tono: "warn" },
 };
@@ -153,6 +154,14 @@ function Detalle({
         </div>
       );
     }
+
+    case "reabrir_cuenta":
+      return (
+        <span>
+          <span className="text-ink">{texto(d.cliente)}</span> · anuló el cobro de{" "}
+          <span className="font-semibold text-ink">{fmtMoney(num(d.total))}</span>
+        </span>
+      );
 
     case "registrar_compra": {
       const renglones = num(d.renglones);

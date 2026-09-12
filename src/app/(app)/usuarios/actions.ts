@@ -14,6 +14,11 @@ const nuevoUsuarioSchema = z.object({
   rol: z.enum(["admin", "operador"]),
 });
 
+const resetPasswordSchema = z.object({
+  id: z.string().uuid("Usuario inválido"),
+  password: z.string().min(6, "La contraseña debe tener al menos 6 caracteres"),
+});
+
 export async function crearUsuario(
   _prev: ActionState,
   formData: FormData,
@@ -50,6 +55,34 @@ export async function crearUsuario(
     .update({ nombre, rol })
     .eq("id", data.user.id);
   if (upErr) return { error: mensajeDeError(upErr) };
+
+  revalidatePath("/usuarios");
+  return { ok: true };
+}
+
+export async function resetearPassword(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  await requireAdmin();
+
+  if (!isAdminClientConfigured) {
+    return {
+      error:
+        "Falta SUPABASE_SERVICE_ROLE_KEY en .env.local para poder cambiar contraseñas.",
+    };
+  }
+
+  const parsed = resetPasswordSchema.safeParse(Object.fromEntries(formData));
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? "Datos inválidos" };
+  }
+
+  const admin = createAdminClient();
+  const { error } = await admin.auth.admin.updateUserById(parsed.data.id, {
+    password: parsed.data.password,
+  });
+  if (error) return { error: mensajeDeError(error) };
 
   revalidatePath("/usuarios");
   return { ok: true };

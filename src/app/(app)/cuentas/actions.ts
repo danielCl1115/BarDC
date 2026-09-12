@@ -117,3 +117,24 @@ export async function cerrarCuenta(
   revalidatePath(`/cuentas/${cuentaId}`);
   redirect(`/cuentas/${cuentaId}?cerrada=1`);
 }
+
+/** Corrige una cuenta ya cobrada: la vuelve a dejar abierta (solo admin). */
+export async function reabrirCuenta(
+  _prev: ActionState,
+  formData: FormData,
+): Promise<ActionState> {
+  const perfil = await requirePerfil();
+  if (perfil.rol !== "admin") {
+    return { error: "Solo un administrador puede reabrir cuentas." };
+  }
+  const cuentaId = String(formData.get("cuenta_id") ?? "");
+  if (!cuentaId) return { error: "Falta la cuenta." };
+
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("reabrir_cuenta", { p_cuenta_id: cuentaId });
+  if (error) return { error: mensajeDeError(error) };
+
+  revalidatePath("/cuentas");
+  revalidatePath(`/cuentas/${cuentaId}`);
+  return { ok: true };
+}
