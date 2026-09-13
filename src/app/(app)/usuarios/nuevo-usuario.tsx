@@ -4,6 +4,7 @@ import { useActionState, useEffect, useRef } from "react";
 import { crearUsuario } from "./actions";
 import { SubmitButton } from "@/components/submit-button";
 import { Field, inputClass } from "@/components/ui";
+import { PasswordInput } from "@/components/password-input";
 import { useToast } from "@/components/toast";
 import type { ActionState } from "@/lib/action";
 
@@ -35,7 +36,7 @@ export function NuevoUsuario() {
         <input name="email" type="email" required className={inputClass} />
       </Field>
       <Field label="Contraseña" hint="mínimo 6 caracteres">
-        <input name="password" type="text" required className={inputClass} />
+        <PasswordInput name="password" autoComplete="new-password" required />
       </Field>
       <Field label="Rol">
         <select name="rol" defaultValue="operador" className={inputClass}>

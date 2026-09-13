@@ -2,7 +2,8 @@
 
 import { useActionState, useEffect, useRef } from "react";
 import { resetearPassword } from "./actions";
-import { Field, inputClass, Modal, buttonVariants } from "@/components/ui";
+import { Field, Modal, buttonVariants } from "@/components/ui";
+import { PasswordInput } from "@/components/password-input";
 import { SubmitButton } from "@/components/submit-button";
 import { Icon } from "@/components/icons";
 import { useToast } from "@/components/toast";
@@ -43,7 +44,7 @@ export function ResetearPassword({ id, nombre }: { id: string; nombre: string })
           <input type="hidden" name="id" value={id} />
 
           <Field label="Nueva contraseña" hint="mínimo 6 caracteres">
-            <input name="password" type="text" required className={inputClass} />
+            <PasswordInput name="password" autoComplete="new-password" required />
           </Field>
 
           {state?.error ? <p className="text-sm text-crit">{state.error}</p> : null}

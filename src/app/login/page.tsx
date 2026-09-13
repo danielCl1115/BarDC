@@ -4,6 +4,7 @@ import { useActionState } from "react";
 import { login } from "./actions";
 import { SubmitButton } from "@/components/submit-button";
 import { Field, inputClass } from "@/components/ui";
+import { PasswordInput } from "@/components/password-input";
 import { LogoBadge } from "@/components/logo";
 import type { ActionState } from "@/lib/action";
 
@@ -46,13 +47,7 @@ export default function LoginPage() {
           </Field>
 
           <Field label="Contraseña">
-            <input
-              name="password"
-              type="password"
-              autoComplete="current-password"
-              required
-              className={inputClass}
-            />
+            <PasswordInput name="password" autoComplete="current-password" required />
           </Field>
 
           {state?.error ? (
