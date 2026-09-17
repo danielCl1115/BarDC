@@ -745,3 +745,86 @@ on conflict (nombre) do nothing;
 --
 --  A partir de ahí, desde la app (pantalla Usuarios) creas a los operadores.
 -- =============================================================================
+
+
+-- =============================================================================
+--  11. MULTI-NEGOCIO (multi-tenant)  ·  PARTE 1: tabla `bares` + bar_id
+--      Objetivo final: una sola app/base de datos puede atender a varios
+--      bares, cada uno viendo solo sus propios productos, cuentas, etc.
+--
+--      Esta PARTE 1 es aditiva y segura de correr ya mismo:
+--      - No borra ni cambia nada de lo que existe hoy.
+--      - No cambia cómo se ve ni cómo funciona la app todavía.
+--      - Solo prepara la base de datos: crea la tabla `bares`, le agrega
+--        `bar_id` a cada tabla, y mete todo lo que ya tienes hoy dentro
+--        de un bar llamado "La Esquina".
+--
+--      La PARTE 2 (seguridad: que cada bar solo vea lo suyo) viene después.
+-- =============================================================================
+create table if not exists public.bares (
+  id          uuid primary key default gen_random_uuid(),
+  nombre      text not null,
+  slug        text not null unique,
+  activo      boolean not null default true,
+  created_at  timestamptz not null default now()
+);
+
+comment on table public.bares is
+  'Un registro por bar/negocio. Todo lo demás (productos, cuentas, etc.) queda amarrado a un bar_id.';
+
+-- El bar que ya existe hoy, para no perder nada de lo que ya está cargado.
+insert into public.bares (nombre, slug)
+values ('La Esquina', 'la-esquina')
+on conflict (slug) do nothing;
+
+-- bar_id en cada tabla de negocio (nullable por ahora, se llena abajo)
+alter table public.profiles               add column if not exists bar_id uuid references public.bares (id);
+alter table public.productos              add column if not exists bar_id uuid references public.bares (id);
+alter table public.compras                add column if not exists bar_id uuid references public.bares (id);
+alter table public.compra_items           add column if not exists bar_id uuid references public.bares (id);
+alter table public.cuentas                add column if not exists bar_id uuid references public.bares (id);
+alter table public.cuenta_items           add column if not exists bar_id uuid references public.bares (id);
+alter table public.movimientos_inventario add column if not exists bar_id uuid references public.bares (id);
+alter table public.historial              add column if not exists bar_id uuid references public.bares (id);
+
+-- Todo lo que ya existe hoy queda amarrado al bar "La Esquina"
+do $$
+declare v_bar_id uuid;
+begin
+  select id into v_bar_id from public.bares where slug = 'la-esquina';
+
+  update public.profiles               set bar_id = v_bar_id where bar_id is null;
+  update public.productos              set bar_id = v_bar_id where bar_id is null;
+  update public.compras                set bar_id = v_bar_id where bar_id is null;
+  update public.compra_items           set bar_id = v_bar_id where bar_id is null;
+  update public.cuentas                set bar_id = v_bar_id where bar_id is null;
+  update public.cuenta_items           set bar_id = v_bar_id where bar_id is null;
+  update public.movimientos_inventario set bar_id = v_bar_id where bar_id is null;
+  update public.historial              set bar_id = v_bar_id where bar_id is null;
+end $$;
+
+-- Ya con todo lleno, bar_id pasa a ser obligatorio
+alter table public.profiles               alter column bar_id set not null;
+alter table public.productos              alter column bar_id set not null;
+alter table public.compras                alter column bar_id set not null;
+alter table public.compra_items           alter column bar_id set not null;
+alter table public.cuentas                alter column bar_id set not null;
+alter table public.cuenta_items           alter column bar_id set not null;
+alter table public.movimientos_inventario alter column bar_id set not null;
+alter table public.historial              alter column bar_id set not null;
+
+-- El nombre de producto ya no es único "global", sino único POR bar
+-- (dos bares distintos sí pueden tener cada uno su "Cerveza 330ml").
+alter table public.productos drop constraint if exists productos_nombre_key;
+alter table public.productos add constraint productos_nombre_bar_unique unique (bar_id, nombre);
+
+-- Índices para que filtrar por bar sea rápido
+create index if not exists profiles_bar_idx              on public.profiles (bar_id);
+create index if not exists productos_bar_idx              on public.productos (bar_id);
+create index if not exists compras_bar_idx                on public.compras (bar_id);
+create index if not exists compra_items_bar_idx           on public.compra_items (bar_id);
+create index if not exists cuentas_bar_idx                on public.cuentas (bar_id);
+create index if not exists cuenta_items_bar_idx           on public.cuenta_items (bar_id);
+create index if not exists movimientos_inventario_bar_idx on public.movimientos_inventario (bar_id);
+create index if not exists historial_bar_idx              on public.historial (bar_id);
+-- =============================================================================
