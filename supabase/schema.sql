@@ -850,6 +850,7 @@ alter table public.historial              alter column bar_id set not null;
 -- El nombre de producto ya no es único "global", sino único POR bar
 -- (dos bares distintos sí pueden tener cada uno su "Cerveza 330ml").
 alter table public.productos drop constraint if exists productos_nombre_key;
+alter table public.productos drop constraint if exists productos_nombre_bar_unique;
 alter table public.productos add constraint productos_nombre_bar_unique unique (bar_id, nombre);
 
 -- Índices para que filtrar por bar sea rápido
