@@ -18,7 +18,7 @@ export async function crearProducto(
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
-  await requireAdmin();
+  const perfil = await requireAdmin();
 
   const parsed = productoSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) {
@@ -26,7 +26,9 @@ export async function crearProducto(
   }
 
   const supabase = await createClient();
-  const { error } = await supabase.from("productos").insert(parsed.data);
+  const { error } = await supabase
+    .from("productos")
+    .insert({ ...parsed.data, bar_id: perfil.bar_id });
   if (error) {
     return {
       error:

@@ -15,6 +15,7 @@ export interface Perfil {
   rol: Rol;
   activo: boolean;
   created_at: string;
+  bar_id: string;
 }
 
 export interface Producto {

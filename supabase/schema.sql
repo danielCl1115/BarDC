@@ -41,10 +41,11 @@ security definer
 set search_path = public
 as $$
 begin
-  insert into public.profiles (id, nombre)
+  insert into public.profiles (id, nombre, bar_id)
   values (
     new.id,
-    coalesce(new.raw_user_meta_data ->> 'nombre', split_part(new.email, '@', 1))
+    coalesce(new.raw_user_meta_data ->> 'nombre', split_part(new.email, '@', 1)),
+    (new.raw_user_meta_data ->> 'bar_id')::uuid
   );
   return new;
 end;
@@ -75,6 +76,18 @@ set search_path = public
 stable
 as $$
   select coalesce(public.mi_rol() = 'admin', false);
+$$;
+
+-- A qué bar pertenece el usuario logueado. Todas las funciones de negocio
+-- y todas las políticas RLS usan esto para que cada bar vea solo lo suyo.
+create or replace function public.mi_bar_id()
+returns uuid
+language sql
+security definer
+set search_path = public
+stable
+as $$
+  select bar_id from public.profiles where id = auth.uid();
 $$;
 
 
@@ -208,9 +221,9 @@ as $$
 declare v_nombre text;
 begin
   select nombre into v_nombre from public.profiles where id = auth.uid();
-  insert into public.historial (actor, actor_nombre, accion, entidad, entidad_id, detalle)
+  insert into public.historial (actor, actor_nombre, accion, entidad, entidad_id, detalle, bar_id)
   values (auth.uid(), coalesce(v_nombre, 'sistema'), p_accion, p_entidad, p_entidad_id,
-          coalesce(p_detalle, '{}'::jsonb));
+          coalesce(p_detalle, '{}'::jsonb), public.mi_bar_id());
 end;
 $$;
 
@@ -237,8 +250,8 @@ begin
     raise exception 'El nombre del cliente es obligatorio';
   end if;
 
-  insert into public.cuentas (nombre_cliente, abierta_por)
-  values (trim(p_nombre_cliente), auth.uid())
+  insert into public.cuentas (nombre_cliente, abierta_por, bar_id)
+  values (trim(p_nombre_cliente), auth.uid(), public.mi_bar_id())
   returning id into v_id;
 
   perform public.registrar_historial('abrir_cuenta', 'cuenta', v_id,
@@ -266,11 +279,13 @@ begin
     raise exception 'La cantidad debe ser mayor a 0';
   end if;
 
-  select estado into v_estado from public.cuentas where id = p_cuenta_id for update;
+  select estado into v_estado from public.cuentas
+  where id = p_cuenta_id and bar_id = public.mi_bar_id() for update;
   if not found then raise exception 'La cuenta no existe'; end if;
   if v_estado <> 'abierta' then raise exception 'La cuenta ya está cerrada'; end if;
 
-  select * into v_prod from public.productos where id = p_producto_id;
+  select * into v_prod from public.productos
+  where id = p_producto_id and bar_id = public.mi_bar_id();
   if not found then raise exception 'El producto no existe'; end if;
   if not v_prod.activo then raise exception 'El producto está inactivo'; end if;
 
@@ -282,9 +297,9 @@ begin
     update public.cuenta_items set cantidad = cantidad + p_cantidad where id = v_existe;
   else
     insert into public.cuenta_items
-      (cuenta_id, producto_id, nombre_producto, cantidad, precio_unitario)
+      (cuenta_id, producto_id, nombre_producto, cantidad, precio_unitario, bar_id)
     values
-      (p_cuenta_id, p_producto_id, v_prod.nombre, p_cantidad, v_prod.precio);
+      (p_cuenta_id, p_producto_id, v_prod.nombre, p_cantidad, v_prod.precio, public.mi_bar_id());
   end if;
 
   update public.cuentas
@@ -310,7 +325,7 @@ begin
   into v_cuenta, v_estado, v_nombre
   from public.cuenta_items ci
   join public.cuentas c on c.id = ci.cuenta_id
-  where ci.id = p_item_id;
+  where ci.id = p_item_id and c.bar_id = public.mi_bar_id();
 
   if not found then raise exception 'El renglón no existe'; end if;
   if v_estado <> 'abierta' then raise exception 'La cuenta ya está cerrada'; end if;
@@ -345,7 +360,7 @@ begin
   into v_cuenta, v_estado, v_nombre
   from public.cuenta_items ci
   join public.cuentas c on c.id = ci.cuenta_id
-  where ci.id = p_item_id;
+  where ci.id = p_item_id and c.bar_id = public.mi_bar_id();
 
   if not found then raise exception 'El renglón no existe'; end if;
   if v_estado <> 'abierta' then raise exception 'La cuenta ya está cerrada'; end if;
@@ -387,7 +402,8 @@ declare
   v_efectivo  numeric(12,2) := coalesce(p_efectivo, 0);
   v_transf    numeric(12,2) := coalesce(p_transferencia, 0);
 begin
-  select * into v_cta from public.cuentas where id = p_cuenta_id for update;
+  select * into v_cta from public.cuentas
+  where id = p_cuenta_id and bar_id = public.mi_bar_id() for update;
   if not found then raise exception 'La cuenta no existe'; end if;
   if v_cta.estado <> 'abierta' then raise exception 'La cuenta ya está cerrada'; end if;
   if v_cta.total <= 0 then raise exception 'La cuenta no tiene productos'; end if;
@@ -418,7 +434,8 @@ begin
     group by producto_id, nombre_producto
   loop
     select stock - v_item.cantidad into v_nuevo
-    from public.productos where id = v_item.producto_id for update;
+    from public.productos
+    where id = v_item.producto_id and bar_id = public.mi_bar_id() for update;
 
     if v_nuevo < 0 then
       raise exception 'Stock insuficiente de "%": no alcanza para % unidades',
@@ -428,10 +445,10 @@ begin
     update public.productos set stock = v_nuevo where id = v_item.producto_id;
 
     insert into public.movimientos_inventario
-      (producto_id, tipo, cantidad, stock_resultante, referencia, nota, creado_por)
+      (producto_id, tipo, cantidad, stock_resultante, referencia, nota, creado_por, bar_id)
     values
       (v_item.producto_id, 'venta', -v_item.cantidad, v_nuevo, p_cuenta_id::text,
-       'Cuenta ' || v_cta.nombre_cliente, auth.uid());
+       'Cuenta ' || v_cta.nombre_cliente, auth.uid(), public.mi_bar_id());
   end loop;
 
   update public.cuentas
@@ -467,7 +484,8 @@ begin
     raise exception 'Solo un administrador puede reabrir una cuenta';
   end if;
 
-  select * into v_cta from public.cuentas where id = p_cuenta_id for update;
+  select * into v_cta from public.cuentas
+  where id = p_cuenta_id and bar_id = public.mi_bar_id() for update;
   if not found then raise exception 'La cuenta no existe'; end if;
   if v_cta.estado <> 'cerrada' then raise exception 'La cuenta no está cerrada'; end if;
 
@@ -478,14 +496,14 @@ begin
     group by producto_id, nombre_producto
   loop
     update public.productos set stock = stock + v_item.cantidad
-    where id = v_item.producto_id
+    where id = v_item.producto_id and bar_id = public.mi_bar_id()
     returning stock into v_nuevo;
 
     insert into public.movimientos_inventario
-      (producto_id, tipo, cantidad, stock_resultante, referencia, nota, creado_por)
+      (producto_id, tipo, cantidad, stock_resultante, referencia, nota, creado_por, bar_id)
     values
       (v_item.producto_id, 'ajuste', v_item.cantidad, v_nuevo, p_cuenta_id::text,
-       'Reapertura de cuenta ' || v_cta.nombre_cliente, auth.uid());
+       'Reapertura de cuenta ' || v_cta.nombre_cliente, auth.uid(), public.mi_bar_id());
   end loop;
 
   update public.cuentas
@@ -530,10 +548,10 @@ begin
     raise exception 'La compra no tiene renglones';
   end if;
 
-  insert into public.compras (proveedor, nota, creada_por)
+  insert into public.compras (proveedor, nota, creada_por, bar_id)
   values (nullif(trim(coalesce(p_proveedor, '')), ''),
           nullif(trim(coalesce(p_nota, '')), ''),
-          auth.uid())
+          auth.uid(), public.mi_bar_id())
   returning id into v_compra_id;
 
   for v_item in select * from jsonb_array_elements(p_items)
@@ -545,21 +563,21 @@ begin
     if v_cant is null or v_cant <= 0 then raise exception 'Cantidad inválida en un renglón'; end if;
     if v_costo is null or v_costo < 0 then raise exception 'Costo inválido en un renglón'; end if;
 
-    insert into public.compra_items (compra_id, producto_id, cantidad, costo_unitario)
-    values (v_compra_id, v_pid, v_cant, v_costo);
+    insert into public.compra_items (compra_id, producto_id, cantidad, costo_unitario, bar_id)
+    values (v_compra_id, v_pid, v_cant, v_costo, public.mi_bar_id());
 
     update public.productos
     set stock = stock + v_cant,
         costo = v_costo                     -- el costo del producto pasa a ser el de esta compra
-    where id = v_pid
+    where id = v_pid and bar_id = public.mi_bar_id()
     returning stock into v_nuevo;
 
     if not found then raise exception 'Un renglón apunta a un producto inexistente'; end if;
 
     insert into public.movimientos_inventario
-      (producto_id, tipo, cantidad, stock_resultante, referencia, nota, creado_por)
+      (producto_id, tipo, cantidad, stock_resultante, referencia, nota, creado_por, bar_id)
     values
-      (v_pid, 'compra', v_cant, v_nuevo, v_compra_id::text, 'Compra', auth.uid());
+      (v_pid, 'compra', v_cant, v_nuevo, v_compra_id::text, 'Compra', auth.uid(), public.mi_bar_id());
 
     v_total := v_total + (v_cant * v_costo);
   end loop;
@@ -591,17 +609,17 @@ begin
   end if;
 
   select stock, nombre into v_actual, v_nombre
-  from public.productos where id = p_producto_id for update;
+  from public.productos where id = p_producto_id and bar_id = public.mi_bar_id() for update;
   if not found then raise exception 'El producto no existe'; end if;
 
   v_dif := p_nuevo_stock - v_actual;
   update public.productos set stock = p_nuevo_stock where id = p_producto_id;
 
   insert into public.movimientos_inventario
-    (producto_id, tipo, cantidad, stock_resultante, referencia, nota, creado_por)
+    (producto_id, tipo, cantidad, stock_resultante, referencia, nota, creado_por, bar_id)
   values
     (p_producto_id, 'ajuste', v_dif, p_nuevo_stock, 'conteo',
-     coalesce(p_nota, 'Ajuste por conteo físico'), auth.uid());
+     coalesce(p_nota, 'Ajuste por conteo físico'), auth.uid(), public.mi_bar_id());
 
   perform public.registrar_historial('ajustar_inventario', 'producto', p_producto_id,
     jsonb_build_object('antes', v_actual, 'despues', p_nuevo_stock,
@@ -656,55 +674,67 @@ alter table public.cuentas                 enable row level security;
 alter table public.cuenta_items            enable row level security;
 alter table public.movimientos_inventario  enable row level security;
 alter table public.historial               enable row level security;
+alter table public.bares                   enable row level security;
 
--- profiles -------------------------------------------------------------------
+-- bares: cada quien ve solo el suyo ----------------------------------------
+drop policy if exists bares_select on public.bares;
+create policy bares_select on public.bares
+  for select to authenticated
+  using (id = public.mi_bar_id());
+
+-- profiles ---------------------------------------------------------------
+-- (te ves siempre a ti mismo; a los demás solo si eres admin Y son de tu bar)
 drop policy if exists profiles_select       on public.profiles;
 drop policy if exists profiles_update_admin on public.profiles;
 create policy profiles_select on public.profiles
   for select to authenticated
-  using (id = auth.uid() or public.es_admin());
+  using (id = auth.uid() or (public.es_admin() and bar_id = public.mi_bar_id()));
 create policy profiles_update_admin on public.profiles
   for update to authenticated
-  using (public.es_admin()) with check (public.es_admin());
+  using (public.es_admin() and bar_id = public.mi_bar_id())
+  with check (public.es_admin() and bar_id = public.mi_bar_id());
 
--- productos: todos leen, solo admin escribe --------------------------------
+-- productos: todos leen, solo admin escribe -- siempre dentro de tu bar ---
 drop policy if exists productos_select      on public.productos;
 drop policy if exists productos_write_admin on public.productos;
 create policy productos_select on public.productos
-  for select to authenticated using (true);
+  for select to authenticated using (bar_id = public.mi_bar_id());
 create policy productos_write_admin on public.productos
   for all to authenticated
-  using (public.es_admin()) with check (public.es_admin());
+  using (public.es_admin() and bar_id = public.mi_bar_id())
+  with check (public.es_admin() and bar_id = public.mi_bar_id());
 
--- compras: solo admin ------------------------------------------------------
+-- compras: solo admin, siempre dentro de tu bar ----------------------------
 drop policy if exists compras_admin      on public.compras;
 drop policy if exists compra_items_admin on public.compra_items;
 create policy compras_admin on public.compras
   for all to authenticated
-  using (public.es_admin()) with check (public.es_admin());
+  using (public.es_admin() and bar_id = public.mi_bar_id())
+  with check (public.es_admin() and bar_id = public.mi_bar_id());
 create policy compra_items_admin on public.compra_items
   for all to authenticated
-  using (public.es_admin()) with check (public.es_admin());
+  using (public.es_admin() and bar_id = public.mi_bar_id())
+  with check (public.es_admin() and bar_id = public.mi_bar_id());
 
--- cuentas / renglones: lectura para autenticados.
+-- cuentas / renglones: lectura para autenticados, solo de tu bar.
 -- La escritura va SIEMPRE por las funciones SECURITY DEFINER, así que
 -- no abrimos INSERT/UPDATE/DELETE directo desde el cliente.
 drop policy if exists cuentas_select      on public.cuentas;
 drop policy if exists cuenta_items_select on public.cuenta_items;
 create policy cuentas_select on public.cuentas
-  for select to authenticated using (true);
+  for select to authenticated using (bar_id = public.mi_bar_id());
 create policy cuenta_items_select on public.cuenta_items
-  for select to authenticated using (true);
+  for select to authenticated using (bar_id = public.mi_bar_id());
 
--- movimientos (kardex): lectura para autenticados -------------------------
+-- movimientos (kardex): lectura para autenticados, solo de tu bar ---------
 drop policy if exists movimientos_select on public.movimientos_inventario;
 create policy movimientos_select on public.movimientos_inventario
-  for select to authenticated using (true);
+  for select to authenticated using (bar_id = public.mi_bar_id());
 
--- historial: solo admin lo lee ------------------------------------------
+-- historial: solo admin lo lee, solo de tu bar ----------------------------
 drop policy if exists historial_admin on public.historial;
 create policy historial_admin on public.historial
-  for select to authenticated using (public.es_admin());
+  for select to authenticated using (public.es_admin() and bar_id = public.mi_bar_id());
 
 -- Permisos de ejecución de las funciones de negocio (solo usuarios logueados)
 revoke execute on all functions in schema public from anon;
@@ -725,12 +755,16 @@ to authenticated;
 -- =============================================================================
 --  9. DATOS DE PRUEBA  (opcional, puedes borrar este bloque)
 -- =============================================================================
-insert into public.productos (nombre, costo, precio, stock, stock_minimo) values
+insert into public.productos (nombre, costo, precio, stock, stock_minimo, bar_id)
+select v.nombre, v.costo, v.precio, v.stock, v.stock_minimo, b.id
+from (values
   ('Cerveza 330ml', 1800, 4000, 48, 12),
   ('Agua 600ml',     600, 2000, 24,  6),
   ('Gaseosa 400ml',  900, 3000, 30,  6),
   ('Snack de papas',  700, 2500, 20,  5)
-on conflict (nombre) do nothing;
+) as v(nombre, costo, precio, stock, stock_minimo)
+cross join (select id from public.bares where slug = 'la-esquina') as b
+on conflict (bar_id, nombre) do nothing;
 
 
 -- =============================================================================

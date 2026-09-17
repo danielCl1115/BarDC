@@ -23,7 +23,7 @@ export async function crearUsuario(
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
-  await requireAdmin();
+  const perfil = await requireAdmin();
 
   if (!isAdminClientConfigured) {
     return {
@@ -43,7 +43,7 @@ export async function crearUsuario(
     email,
     password,
     email_confirm: true,
-    user_metadata: { nombre },
+    user_metadata: { nombre, bar_id: perfil.bar_id },
   });
   if (error || !data.user) {
     return { error: error ? mensajeDeError(error) : "No se pudo crear el usuario." };
