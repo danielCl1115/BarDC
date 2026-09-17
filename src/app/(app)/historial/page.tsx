@@ -20,7 +20,7 @@ const ACCION_META: Record<string, { etiqueta: string; icon: IconName; tono: keyo
 const ICONO_TONO = {
   brand: "bg-brand-50 text-brand-600",
   good: "bg-good/10 text-good",
-  warn: "bg-warn/15 text-[#8a5a06]",
+  warn: "bg-warn/15 text-warn",
   crit: "bg-crit/10 text-crit",
   neutral: "bg-ink/6 text-ink-2",
 };

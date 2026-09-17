@@ -18,18 +18,28 @@ const LINKS: { href: string; label: string; icon: IconName; roles: Rol[] }[] = [
   { href: "/usuarios", label: "Usuarios", icon: "users", roles: ["admin"] },
 ];
 
-export function Nav({ nombre, rol }: { nombre: string; rol: Rol }) {
+export function Nav({
+  nombre,
+  rol,
+  barNombre,
+}: {
+  nombre: string;
+  rol: Rol;
+  barNombre: string;
+}) {
   const pathname = usePathname();
   const links = LINKS.filter((l) => l.roles.includes(rol));
   const inicial = nombre.trim().charAt(0).toUpperCase() || "?";
 
   return (
-    <aside className="flex w-full shrink-0 flex-col border-b border-ink/8 bg-surface print:hidden md:h-dvh md:w-60 md:border-b-0 md:border-r">
+    <aside className="flex w-full shrink-0 flex-col border-b border-line bg-surface print:hidden md:h-dvh md:w-60 md:border-b-0 md:border-r">
       <div className="flex items-center gap-2.5 px-4 py-4">
         <LogoMark size={34} className="shrink-0" />
         <div className="min-w-0">
-          <div className="truncate text-sm font-semibold text-ink">La Esquina</div>
-          <div className="truncate text-[11px] text-ink-3">Inventario y Cuentas</div>
+          <div className="truncate text-sm font-semibold text-ink">{barNombre}</div>
+          <div className="truncate text-[11px] font-medium uppercase tracking-wider text-brand-600">
+            Stockeo
+          </div>
         </div>
       </div>
 
@@ -56,7 +66,7 @@ export function Nav({ nombre, rol }: { nombre: string; rol: Rol }) {
         })}
       </nav>
 
-      <div className="flex items-center gap-2.5 border-t border-ink/8 px-4 py-3">
+      <div className="flex items-center gap-2.5 border-t border-line px-4 py-3">
         <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-ink/8 text-xs font-semibold text-ink-2">
           {inicial}
         </span>

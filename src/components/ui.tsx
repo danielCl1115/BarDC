@@ -13,7 +13,7 @@ export function PageHeader({
   children?: ReactNode;
 }) {
   return (
-    <div className="flex flex-wrap items-end justify-between gap-3 border-b border-ink/8 pb-5">
+    <div className="flex flex-wrap items-end justify-between gap-3 border-b border-line pb-5">
       <div>
         <h1 className="text-[26px] font-semibold leading-tight tracking-tight text-ink">
           {title}
@@ -44,7 +44,7 @@ export function Card({
 }) {
   return (
     <section
-      className={`rounded-xl border border-ink/8 bg-surface p-6 shadow-[0_1px_2px_rgba(11,11,11,0.04)] ${className}`}
+      className={`rounded-xl border border-line bg-surface p-6 shadow-[0_1px_2px_rgba(11,17,32,0.05),0_0_28px_-18px_rgba(8,145,178,0.35)] ${className}`}
     >
       {title ? (
         <div className="mb-5 flex items-start justify-between gap-3">
@@ -64,9 +64,10 @@ export function Card({
 
 /** Clases de los 3 estilos de botón, compartidas entre <Button> (link) y <SubmitButton>. */
 export const buttonVariants: Record<"primary" | "secondary" | "danger", string> = {
-  primary: "bg-brand-500 text-white hover:bg-brand-600",
-  secondary: "border border-ink/15 bg-surface text-ink-2 hover:bg-plane",
-  danger: "bg-crit text-white hover:bg-[#b83232]",
+  primary:
+    "bg-brand-500 text-white shadow-[0_4px_14px_-4px_rgba(8,145,178,0.5)] hover:bg-brand-600",
+  secondary: "border border-line bg-surface text-ink-2 hover:bg-plane",
+  danger: "bg-crit text-white hover:bg-[#9f0f2e]",
 };
 
 const buttonBase =
@@ -100,7 +101,7 @@ export function Button({
 const STAT_TONES: Record<string, string> = {
   brand: "bg-brand-50 text-brand-600",
   good: "bg-good/10 text-good",
-  warn: "bg-warn/15 text-[#8a5a06]",
+  warn: "bg-warn/15 text-warn",
 };
 
 const STAT_DEFAULT_ICON: Record<string, IconName> = {
@@ -124,7 +125,7 @@ export function StatTile({
   icon?: IconName;
 }) {
   return (
-    <div className="rounded-xl border border-ink/8 bg-surface p-5 shadow-[0_1px_2px_rgba(11,11,11,0.04)]">
+    <div className="rounded-xl border border-line bg-surface p-5 shadow-[0_1px_2px_rgba(11,17,32,0.05),0_0_28px_-18px_rgba(8,145,178,0.35)]">
       <div className="flex items-center justify-between">
         <span className="text-sm text-ink-2">{label}</span>
         <span
@@ -183,9 +184,9 @@ export function Modal({
         if (e.target === dialogRef.current) onClose();
       }}
       onClose={onClose}
-      className="m-auto w-full max-w-md rounded-xl border border-ink/10 bg-surface p-0 text-ink shadow-2xl backdrop:bg-ink/40 [&::backdrop]:backdrop-blur-[1px]"
+      className="m-auto w-full max-w-md rounded-xl border border-line bg-surface p-0 text-ink shadow-2xl backdrop:bg-ink/40 [&::backdrop]:backdrop-blur-[1px]"
     >
-      <div className="flex items-center justify-between border-b border-ink/8 px-5 py-4">
+      <div className="flex items-center justify-between border-b border-line px-5 py-4">
         <h3 className="text-base font-semibold text-ink">{title}</h3>
         <button
           type="button"
@@ -202,11 +203,11 @@ export function Modal({
 }
 
 export const inputClass =
-  "w-full rounded-md border border-ink/15 bg-surface px-3 py-2 text-sm text-ink outline-none transition-shadow focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20";
+  "w-full rounded-md border border-line bg-surface px-3 py-2 text-sm text-ink outline-none transition-shadow focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20";
 
 export function Empty({ children }: { children: ReactNode }) {
   return (
-    <p className="rounded-lg border border-dashed border-ink/15 bg-plane px-4 py-8 text-center text-sm text-ink-3">
+    <p className="rounded-lg border border-dashed border-line bg-plane px-4 py-8 text-center text-sm text-ink-3">
       {children}
     </p>
   );
@@ -214,8 +215,8 @@ export function Empty({ children }: { children: ReactNode }) {
 
 const BADGE_TONES: Record<string, string> = {
   neutral: "bg-ink/6 text-ink-2",
-  good: "bg-good/10 text-[#0a7d0a]",
-  warn: "bg-warn/20 text-[#8a5a06]",
+  good: "bg-good/10 text-good",
+  warn: "bg-warn/15 text-warn",
   crit: "bg-crit/10 text-crit",
   brand: "bg-brand-50 text-brand-600",
 };

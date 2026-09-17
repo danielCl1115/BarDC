@@ -14,25 +14,25 @@ import {
 } from "recharts";
 import { fmtMoney, fmtSoloFecha } from "@/lib/format";
 
-// Paleta validada (dataviz skill): secuencial = 1 hue azul; 2ª serie = naranja;
+// Paleta validada (dataviz skill): secuencial = 1 hue cian; 2ª serie = violeta;
 // estado reservado a alertas, nunca reusado como serie.
-const BRAND = "#2a78d6";
-const ACCENT2 = "#eb6834";
-const ACCENT3 = "#1baf7a"; // 3ª serie categórica (paleta validada, slot "aqua")
-const CRIT = "#d03b3b";
-const WARN = "#eda100"; // paso más oscuro que el warning de texto, para que la barra se vea sobre el fondo claro
-const MUTED = "#c3c2b7";
-const GRID = "#e1e0d9";
-const INK2 = "#52514e";
-const INK3 = "#898781";
+const BRAND = "#0891b2";
+const ACCENT2 = "#9333ea";
+const ACCENT3 = "#0d9488"; // 3ª serie categórica (paleta validada, slot "aqua")
+const CRIT = "#be123c";
+const WARN = "#b45309";
+const MUTED = "#c9d0de";
+const GRID = "#e4e8f1";
+const INK2 = "#4b5568";
+const INK3 = "#848da0";
 
 const tooltipBox = {
-  background: "#fcfcfb",
-  border: "1px solid #e1e0d9",
+  background: "#ffffff",
+  border: "1px solid #e4e8f1",
   borderRadius: 8,
   fontSize: 12,
-  color: "#0b0b0b",
-  boxShadow: "0 4px 12px rgba(11,11,11,0.08)",
+  color: "#0b1220",
+  boxShadow: "0 4px 12px rgba(11,17,32,0.08)",
 };
 
 const axisTick = { fill: INK3, fontSize: 11 };
@@ -71,7 +71,7 @@ export function VentasTrendChart({
         />
         <Tooltip
           contentStyle={tooltipBox}
-          cursor={{ fill: "#0b0b0b", fillOpacity: 0.04 }}
+          cursor={{ fill: "#0b1220", fillOpacity: 0.04 }}
           labelFormatter={(d) => fmtSoloFecha(String(d))}
           formatter={(v) => [fmtMoney(Number(v)), "Ventas"]}
         />
@@ -129,7 +129,7 @@ export function PagoPorDiaChart({
         />
         <Tooltip
           contentStyle={tooltipBox}
-          cursor={{ fill: "#0b0b0b", fillOpacity: 0.04 }}
+          cursor={{ fill: "#0b1220", fillOpacity: 0.04 }}
           formatter={(v) => fmtMoney(Number(v))}
         />
         <Legend
@@ -197,7 +197,7 @@ export function StockChart({
           tickLine={false}
           width={120}
         />
-        <Tooltip contentStyle={tooltipBox} cursor={{ fill: "#0b0b0b", fillOpacity: 0.03 }} />
+        <Tooltip contentStyle={tooltipBox} cursor={{ fill: "#0b1220", fillOpacity: 0.03 }} />
         <Legend
           iconType="circle"
           iconSize={8}

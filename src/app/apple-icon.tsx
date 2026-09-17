@@ -3,9 +3,6 @@ import { ImageResponse } from "next/og";
 export const size = { width: 180, height: 180 };
 export const contentType = "image/png";
 
-const INK = "#1c3829";
-const CREAM = "#f4ecd8";
-
 export default function AppleIcon() {
   return new ImageResponse(
     (
@@ -16,26 +13,21 @@ export default function AppleIcon() {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          background: INK,
+          background: "#090d16",
         }}
       >
         <svg width="164" height="164" viewBox="0 0 100 100">
-          <circle cx="50" cy="50" r="48" fill={INK} />
-          <circle cx="50" cy="50" r="40" fill={CREAM} stroke={INK} strokeWidth="1.5" />
-          <g transform="translate(50 55)">
-            <path
-              d="M-15,-19 L15,-19 L12.5,17 a3,3 0 0 1 -3,2.6 L-9.5,19.6 a3,3 0 0 1 -3,-2.6 Z"
-              fill={INK}
-            />
-            <path d="M-13.6,-19 L13.6,-19 L12.7,-9.5 L-12.7,-9.5 Z" fill={CREAM} />
-            <path
-              d="M15,-11 h5.5 a6.2,6.2 0 0 1 0,16 h-4.6"
-              fill="none"
-              stroke={INK}
-              strokeWidth="3"
-              strokeLinecap="round"
-            />
-          </g>
+          <defs>
+            <linearGradient id="g" x1="0" y1="0" x2="100" y2="100">
+              <stop offset="0%" stopColor="#22d3ee" />
+              <stop offset="100%" stopColor="#a855f7" />
+            </linearGradient>
+          </defs>
+          <rect x="8" y="8" width="84" height="84" rx="20" fill="#0a0f1c" />
+          <rect x="8" y="8" width="84" height="84" rx="20" fill="none" stroke="url(#g)" strokeWidth="2.5" />
+          <rect x="37" y="30" width="26" height="9" rx="4.5" fill="url(#g)" />
+          <rect x="29" y="45" width="42" height="9" rx="4.5" fill="url(#g)" opacity={0.82} />
+          <rect x="21" y="60" width="58" height="9" rx="4.5" fill="url(#g)" opacity={0.62} />
         </svg>
       </div>
     ),

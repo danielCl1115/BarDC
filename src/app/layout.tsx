@@ -2,17 +2,17 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "La Esquina — Inventario y Cuentas",
-  description: "Bar de barrio — sistema de inventario, cuentas y ventas",
+  title: "Stockeo — Inventario y Cuentas para Bares",
+  description: "Software de inventario, cuentas y ventas para bares",
   appleWebApp: {
     capable: true,
-    statusBarStyle: "black-translucent",
-    title: "La Esquina",
+    statusBarStyle: "default",
+    title: "Stockeo",
   },
 };
 
 export const viewport: Viewport = {
-  themeColor: "#1c3829",
+  themeColor: "#f5f7fb",
 };
 
 export default function RootLayout({

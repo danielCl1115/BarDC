@@ -682,6 +682,13 @@ create policy bares_select on public.bares
   for select to authenticated
   using (id = public.mi_bar_id());
 
+-- bares: lista pública (sin sesión) para elegir el bar en el login.
+-- Solo nombre e id de bares activos, nada sensible.
+drop policy if exists bares_select_publico on public.bares;
+create policy bares_select_publico on public.bares
+  for select to anon
+  using (activo = true);
+
 -- profiles ---------------------------------------------------------------
 -- (te ves siempre a ti mismo; a los demás solo si eres admin Y son de tu bar)
 drop policy if exists profiles_select       on public.profiles;

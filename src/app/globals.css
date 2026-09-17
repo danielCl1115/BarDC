@@ -5,31 +5,31 @@
 }
 
 @theme {
-  /* Marca */
-  --color-brand-50: #eaf2fc;
-  --color-brand-100: #cde2fb;
-  --color-brand-400: #3987e5;
-  --color-brand-500: #2a78d6;
-  --color-brand-600: #256abf;
-  --color-brand-700: #184f95;
+  /* Marca (Stockeo): cian tecnológico, con violeta como acento de gradiente */
+  --color-brand-50: #e6fbff;
+  --color-brand-100: #c7f4fd;
+  --color-brand-400: #22d3ee;
+  --color-brand-500: #0891b2;
+  --color-brand-600: #0e7490;
+  --color-brand-700: #155e75;
 
   /* Segunda serie (categórica, orden fijo) */
-  --color-accent2: #eb6834;
+  --color-accent2: #9333ea;
 
-  /* Tinta / superficies */
-  --color-ink: #0b0b0b;
-  --color-ink-2: #52514e;
-  --color-ink-3: #898781;
-  --color-surface: #fcfcfb;
-  --color-plane: #f9f9f7;
-  --color-line: #e1e0d9;
-  --color-baseline: #c3c2b7;
+  /* Tinta / superficies (tema claro) */
+  --color-ink: #0b1220;
+  --color-ink-2: #4b5568;
+  --color-ink-3: #848da0;
+  --color-surface: #ffffff;
+  --color-plane: #f5f7fb;
+  --color-line: #e4e8f1;
+  --color-baseline: #c9d0de;
 
   /* Estado (reservados: nunca para series) */
-  --color-good: #0ca30c;
-  --color-warn: #fab219;
-  --color-serious: #ec835a;
-  --color-crit: #d03b3b;
+  --color-good: #15803d;
+  --color-warn: #b45309;
+  --color-serious: #c2410c;
+  --color-crit: #be123c;
 }
 
 body {
