@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { requireAdmin } from "@/lib/auth";
+import { requireModulo } from "@/lib/modulos";
 import { createClient } from "@/lib/supabase/server";
 import { Card, Empty, PageHeader, StatTile, Field, inputClass, buttonVariants } from "@/components/ui";
 import { Icon } from "@/components/icons";
@@ -29,6 +30,7 @@ export default async function ComprasPage({
   searchParams: Promise<{ periodo?: string; desde?: string; hasta?: string }>;
 }) {
   await requireAdmin();
+  await requireModulo("compras");
   const sp = await searchParams;
   const supabase = await createClient();
 

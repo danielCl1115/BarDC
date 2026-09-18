@@ -1,5 +1,6 @@
 import ExcelJS from "exceljs";
 import { requireAdmin } from "@/lib/auth";
+import { requireModulo } from "@/lib/modulos";
 import { fmtFecha } from "@/lib/format";
 import { metodoLabel } from "@/lib/metodo-pago";
 import { hoyYMD, diasEntre, sumarDias } from "@/lib/tz";
@@ -27,6 +28,7 @@ function estilizarEncabezado(fila: ExcelJS.Row) {
 
 export async function GET(request: Request) {
   await requireAdmin();
+  await requireModulo("reportes");
 
   const sp = new URL(request.url).searchParams;
   const periodo: Periodo = PERIODOS.some((p) => p.valor === sp.get("periodo"))

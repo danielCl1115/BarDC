@@ -5,30 +5,35 @@ import { usePathname } from "next/navigation";
 import { logout } from "@/app/login/actions";
 import { Icon, type IconName } from "@/components/icons";
 import { LogoMark } from "@/components/logo";
+import type { ModuloId } from "@/lib/modulos-catalogo";
 import type { Rol } from "@/lib/types";
 
-const LINKS: { href: string; label: string; icon: IconName; roles: Rol[] }[] = [
+const LINKS: { href: string; label: string; icon: IconName; roles: Rol[]; modulo?: ModuloId }[] = [
   { href: "/dashboard", label: "Inicio", icon: "home", roles: ["admin", "operador"] },
   { href: "/cuentas", label: "Cuentas", icon: "receipt", roles: ["admin", "operador"] },
-  { href: "/productos", label: "Productos", icon: "box", roles: ["admin"] },
-  { href: "/compras", label: "Compras", icon: "truck", roles: ["admin"] },
-  { href: "/inventario", label: "Inventario", icon: "layers", roles: ["admin"] },
-  { href: "/reportes", label: "Reportes", icon: "chart", roles: ["admin"] },
-  { href: "/historial", label: "Historial", icon: "clock", roles: ["admin"] },
-  { href: "/usuarios", label: "Usuarios", icon: "users", roles: ["admin"] },
+  { href: "/productos", label: "Productos", icon: "box", roles: ["admin"], modulo: "productos" },
+  { href: "/compras", label: "Compras", icon: "truck", roles: ["admin"], modulo: "compras" },
+  { href: "/inventario", label: "Inventario", icon: "layers", roles: ["admin"], modulo: "inventario" },
+  { href: "/reportes", label: "Reportes", icon: "chart", roles: ["admin"], modulo: "reportes" },
+  { href: "/historial", label: "Historial", icon: "clock", roles: ["admin"], modulo: "historial" },
+  { href: "/usuarios", label: "Usuarios", icon: "users", roles: ["admin"], modulo: "usuarios" },
 ];
 
 export function Nav({
   nombre,
   rol,
   barNombre,
+  modulos,
 }: {
   nombre: string;
   rol: Rol;
   barNombre: string;
+  modulos: ModuloId[];
 }) {
   const pathname = usePathname();
-  const links = LINKS.filter((l) => l.roles.includes(rol));
+  const links = LINKS.filter(
+    (l) => l.roles.includes(rol) && (!l.modulo || modulos.includes(l.modulo)),
+  );
   const inicial = nombre.trim().charAt(0).toUpperCase() || "?";
 
   return (

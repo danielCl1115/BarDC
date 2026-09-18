@@ -870,3 +870,16 @@ create index if not exists cuenta_items_bar_idx           on public.cuenta_items
 create index if not exists movimientos_inventario_bar_idx on public.movimientos_inventario (bar_id);
 create index if not exists historial_bar_idx              on public.historial (bar_id);
 -- =============================================================================
+
+
+-- =============================================================================
+--  13. PLANES POR BAR: qué módulos tiene contratados cada bar
+--      "Inicio" y "Cuentas" (vender) siempre están incluidos: son la base.
+--      Los demás (productos, compras, inventario, reportes, historial,
+--      usuarios) se pueden activar o desactivar por bar desde /panel, para
+--      ofrecer un plan básico y cobrar más por el resto.
+--      Por defecto todos los bares existentes quedan con acceso completo
+--      (nadie pierde nada al correr esto).
+-- =============================================================================
+alter table public.bares add column if not exists modulos jsonb not null default
+  '["productos","compras","inventario","reportes","historial","usuarios"]'::jsonb;

@@ -1,4 +1,5 @@
 import { requireAdmin } from "@/lib/auth";
+import { requireModulo } from "@/lib/modulos";
 import { createClient } from "@/lib/supabase/server";
 import { Card, Empty, PageHeader, Badge } from "@/components/ui";
 import { Icon, type IconName } from "@/components/icons";
@@ -27,6 +28,7 @@ const ICONO_TONO = {
 
 export default async function HistorialPage() {
   await requireAdmin();
+  await requireModulo("historial");
   const supabase = await createClient();
 
   const [{ data }, { data: productosData }] = await Promise.all([

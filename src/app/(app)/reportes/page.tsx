@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { requireAdmin } from "@/lib/auth";
+import { requireModulo } from "@/lib/modulos";
 import { Card, Empty, PageHeader, StatTile, Badge, Field, inputClass, buttonVariants } from "@/components/ui";
 import { Icon } from "@/components/icons";
 import { PagoPorDiaChart } from "@/components/charts";
@@ -38,6 +39,7 @@ export default async function ReportesPage({
   searchParams: Promise<{ periodo?: string; desde?: string; hasta?: string; agrupar?: string }>;
 }) {
   await requireAdmin();
+  await requireModulo("reportes");
   const sp = await searchParams;
 
   const periodo: Periodo = PERIODOS.some((p) => p.valor === sp.periodo)

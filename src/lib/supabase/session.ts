@@ -52,8 +52,12 @@ export async function updateSession(request: NextRequest) {
   }
 
   if (user && pathname.startsWith("/login")) {
+    const superAdminEmail = (process.env.SUPER_ADMIN_EMAIL ?? "").trim().toLowerCase();
+    const esSuperAdmin =
+      superAdminEmail.length > 0 && user.email?.trim().toLowerCase() === superAdminEmail;
+
     const url = request.nextUrl.clone();
-    url.pathname = "/dashboard";
+    url.pathname = esSuperAdmin ? "/panel" : "/dashboard";
     return NextResponse.redirect(url);
   }
 

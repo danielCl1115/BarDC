@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { esSuperAdmin } from "@/lib/super-admin";
 import type { ActionState } from "@/lib/action";
 
 export async function login(
@@ -24,7 +25,13 @@ export async function login(
     return { error: "Correo o contraseña incorrectos." };
   }
 
-  // Si la pantalla mostró selector de bar, el correo debe ser de ese bar.
+  if (esSuperAdmin(email)) {
+    revalidatePath("/", "layout");
+    redirect("/panel");
+  }
+
+  // Si la pantalla mostró selector de bar, el correo debe ser de ese bar
+  // y ese bar debe seguir activo.
   if (barId) {
     const {
       data: { user },
@@ -38,6 +45,17 @@ export async function login(
     if (!perfil || perfil.bar_id !== barId) {
       await supabase.auth.signOut();
       return { error: "Ese correo no pertenece al bar que seleccionaste." };
+    }
+
+    const { data: bar } = await supabase
+      .from("bares")
+      .select("activo")
+      .eq("id", barId)
+      .single();
+
+    if (!bar || !bar.activo) {
+      await supabase.auth.signOut();
+      return { error: "Este bar no tiene acceso activo. Contacta al administrador." };
     }
   }
 

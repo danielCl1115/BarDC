@@ -1,7 +1,9 @@
 import { requireAdmin } from "@/lib/auth";
+import { requireModulo } from "@/lib/modulos";
 import { createClient } from "@/lib/supabase/server";
 import { Card, Empty, PageHeader, Badge, StatTile } from "@/components/ui";
 import { ToggleSwitch } from "@/components/toggle-switch";
+import { StockGlass } from "@/components/stock-glass";
 import { fmtMoney } from "@/lib/format";
 import { NuevoProducto, EditarProducto, EliminarProducto } from "./forms";
 import { toggleActivo } from "./actions";
@@ -9,6 +11,7 @@ import type { Producto } from "@/lib/types";
 
 export default async function ProductosPage() {
   await requireAdmin();
+  await requireModulo("productos");
   const supabase = await createClient();
 
   const { data } = await supabase
@@ -85,7 +88,12 @@ export default async function ProductosPage() {
                     </td>
                     <td className="py-3 pr-4 text-right">{fmtMoney(p.costo)}</td>
                     <td className="py-3 pr-4 text-right">{fmtMoney(p.precio)}</td>
-                    <td className="py-3 pr-4 text-right">{p.stock}</td>
+                    <td className="py-3 pr-4">
+                      <div className="flex items-center justify-end gap-2">
+                        <StockGlass stock={p.stock} minimo={p.stock_minimo} />
+                        <span>{p.stock}</span>
+                      </div>
+                    </td>
                     <td className="py-3 pr-4 text-right">{p.stock_minimo}</td>
                     <td className="whitespace-nowrap py-3 pr-4">
                       {p.stock <= p.stock_minimo ? (

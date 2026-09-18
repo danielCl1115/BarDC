@@ -231,6 +231,51 @@ export function StockChart({
   );
 }
 
+/**
+ * Ranking de productos más vendidos (cantidad), entre todos los bares.
+ * Un solo hue: no hay estado que resaltar aquí, solo orden.
+ */
+export function TopProductosChart({
+  data,
+}: {
+  data: { nombre: string; cantidad: number }[];
+}) {
+  const alto = Math.max(220, data.length * 34);
+  return (
+    <ResponsiveContainer width="100%" height={alto}>
+      <BarChart
+        data={data}
+        layout="vertical"
+        margin={{ top: 4, right: 24, left: 8, bottom: 0 }}
+      >
+        <CartesianGrid horizontal={false} stroke={GRID} />
+        <XAxis type="number" tick={axisTick} axisLine={false} tickLine={false} />
+        <YAxis
+          type="category"
+          dataKey="nombre"
+          tick={axisTick}
+          axisLine={false}
+          tickLine={false}
+          width={120}
+        />
+        <Tooltip
+          contentStyle={tooltipBox}
+          cursor={{ fill: "#0b1220", fillOpacity: 0.03 }}
+          formatter={(v) => [fmtCompact(Number(v)), "Cantidad"]}
+        />
+        <Bar
+          dataKey="cantidad"
+          name="Cantidad vendida"
+          fill={BRAND}
+          radius={[0, 3, 3, 0]}
+          maxBarSize={16}
+          isAnimationActive={false}
+        />
+      </BarChart>
+    </ResponsiveContainer>
+  );
+}
+
 function fmtCompact(n: number): string {
   if (Math.abs(n) >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
   if (Math.abs(n) >= 1_000) return `${Math.round(n / 1000)}K`;

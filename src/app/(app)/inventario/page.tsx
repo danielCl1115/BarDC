@@ -1,13 +1,16 @@
 import { requireAdmin } from "@/lib/auth";
+import { requireModulo } from "@/lib/modulos";
 import { createClient } from "@/lib/supabase/server";
 import { Card, Empty, PageHeader, Badge, StatTile } from "@/components/ui";
 import { StockChart } from "@/components/charts";
+import { StockGlass } from "@/components/stock-glass";
 import { fmtMoney } from "@/lib/format";
 import { AjusteForm } from "./ajuste-form";
 import type { InventarioFila } from "@/lib/types";
 
 export default async function InventarioPage() {
   await requireAdmin();
+  await requireModulo("inventario");
   const supabase = await createClient();
 
   const { data } = await supabase.from("v_inventario").select("*");
@@ -77,7 +80,12 @@ export default async function InventarioPage() {
                         </span>
                       ) : null}
                     </td>
-                    <td className="py-3 pr-4 text-right">{f.stock}</td>
+                    <td className="py-3 pr-4">
+                      <div className="flex items-center justify-end gap-2">
+                        <StockGlass stock={f.stock} minimo={f.stock_minimo} />
+                        <span>{f.stock}</span>
+                      </div>
+                    </td>
                     <td className="py-3 pr-4 text-right">{f.stock_minimo}</td>
                     <td className="py-3 pr-4 text-right">{fmtMoney(f.valor_costo)}</td>
                     <td className="py-3 pr-4">

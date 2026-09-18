@@ -2,7 +2,18 @@ import { createClient } from "@/lib/supabase/server";
 import { LoginForm } from "./login-form";
 import { LogoMark } from "@/components/logo";
 
-export default async function LoginPage() {
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ inactivo?: string; bar_inactivo?: string }>;
+}) {
+  const sp = await searchParams;
+  const mensaje = sp.bar_inactivo
+    ? "Este bar no tiene acceso activo. Contacta al administrador."
+    : sp.inactivo
+      ? "Tu usuario está desactivado. Contacta al administrador."
+      : null;
+
   const supabase = await createClient();
   const { data: bares } = await supabase
     .from("bares")
@@ -32,6 +43,12 @@ export default async function LoginPage() {
         <p className="mt-1 text-center text-xs font-medium uppercase tracking-[0.2em] text-ink-3">
           Inventario y cuentas para bares
         </p>
+
+        {mensaje ? (
+          <p className="mt-5 rounded-md bg-crit/10 px-3 py-2 text-center text-sm text-crit">
+            {mensaje}
+          </p>
+        ) : null}
 
         <div className="mt-7 rounded-2xl border border-line bg-surface p-7 shadow-[0_1px_2px_rgba(11,17,32,0.05),0_20px_50px_-20px_rgba(8,145,178,0.3)]">
           <LoginForm bares={bares ?? []} />

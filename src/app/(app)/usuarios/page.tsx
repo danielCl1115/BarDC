@@ -1,4 +1,6 @@
 import { requireAdmin } from "@/lib/auth";
+import { requireModulo } from "@/lib/modulos";
+import { esSuperAdmin } from "@/lib/super-admin";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient, isAdminClientConfigured } from "@/lib/supabase/admin";
 import { Card, Empty, PageHeader, Badge } from "@/components/ui";
@@ -11,13 +13,13 @@ import type { Perfil } from "@/lib/types";
 
 export default async function UsuariosPage() {
   const yo = await requireAdmin();
+  await requireModulo("usuarios");
   const supabase = await createClient();
 
   const { data: perfilesData } = await supabase
     .from("profiles")
     .select("*")
     .order("created_at");
-  const perfiles = (perfilesData ?? []) as Perfil[];
 
   // Correos: solo disponibles con la service_role key
   const emails = new Map<string, string>();
@@ -27,6 +29,11 @@ export default async function UsuariosPage() {
     });
     for (const u of data?.users ?? []) emails.set(u.id, u.email ?? "");
   }
+
+  // El super-usuario de la plataforma nunca aparece en el equipo de un bar.
+  const perfiles = ((perfilesData ?? []) as Perfil[]).filter(
+    (p) => !esSuperAdmin(emails.get(p.id)),
+  );
 
   return (
     <>
