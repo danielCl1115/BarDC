@@ -2,8 +2,14 @@ import { requireSuperAdmin } from "@/lib/super-admin";
 import { createAdminClient, isAdminClientConfigured } from "@/lib/supabase/admin";
 import { Card, PageHeader, Empty } from "@/components/ui";
 import { ToggleSwitch } from "@/components/toggle-switch";
+import { Icon } from "@/components/icons";
 import { MODULOS_OPCIONALES, TODOS_LOS_MODULOS, type ModuloId } from "@/lib/modulos-catalogo";
 import { toggleModuloBar } from "../actions";
+
+const MODULOS_BASE = [
+  { id: "inicio", label: "Inicio" },
+  { id: "cuentas", label: "Cuentas" },
+] as const;
 
 type BarRow = {
   id: string;
@@ -46,6 +52,11 @@ export default async function PanelModulosPage() {
               <thead>
                 <tr className="border-b border-line text-left text-xs uppercase tracking-wide text-ink-3">
                   <th className="pb-3 pr-4">Bar</th>
+                  {MODULOS_BASE.map((m) => (
+                    <th key={m.id} className="pb-3 pr-4 text-center font-medium">
+                      {m.label}
+                    </th>
+                  ))}
                   {MODULOS_OPCIONALES.map((m) => (
                     <th key={m.id} className="pb-3 pr-4 text-center font-medium">
                       {m.label}
@@ -59,6 +70,16 @@ export default async function PanelModulosPage() {
                   return (
                     <tr key={bar.id} className="border-b border-line last:border-0">
                       <td className="py-3 pr-4 font-medium text-ink">{bar.nombre}</td>
+                      {MODULOS_BASE.map((m) => (
+                        <td key={m.id} className="py-3 pr-4 text-center">
+                          <span
+                            title="Siempre incluido"
+                            className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-good/10 text-good"
+                          >
+                            <Icon name="check" size={12} />
+                          </span>
+                        </td>
+                      ))}
                       {MODULOS_OPCIONALES.map((m) => {
                         const prendido = modulos.includes(m.id);
                         return (
