@@ -18,7 +18,7 @@ export function NuevaCuenta() {
         <Field label="Nombre del cliente">
           <input
             name="nombre_cliente"
-            placeholder="ej: Daniel"
+            placeholder="ej: Mesa 3"
             required
             className={inputClass}
           />
