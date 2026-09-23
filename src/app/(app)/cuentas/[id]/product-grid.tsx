@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { agregarItemTile } from "../actions";
 import { fmtMoney } from "@/lib/format";
@@ -7,6 +8,17 @@ import { tileColor } from "@/lib/tile-colors";
 import { Icon } from "@/components/icons";
 
 type ProductoOpcion = { id: string; nombre: string; precio: number; stock: number };
+
+// Quita tildes para que "papeleria" encuentre "Papelería".
+function normalizar(texto: string) {
+  return texto
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "");
+}
+
+// A partir de este tamaño de catálogo, escribir es más rápido que hacer scroll.
+const UMBRAL_BUSCADOR = 8;
 
 /** Cuadrícula de productos: tocar un producto lo agrega a la cuenta (cantidad 1). */
 export function ProductGrid({
@@ -16,11 +28,44 @@ export function ProductGrid({
   cuentaId: string;
   productos: ProductoOpcion[];
 }) {
+  const [busqueda, setBusqueda] = useState("");
+
+  const filtrados = useMemo(() => {
+    const q = normalizar(busqueda.trim());
+    if (!q) return productos;
+    return productos.filter((p) => normalizar(p.nombre).includes(q));
+  }, [productos, busqueda]);
+
   return (
-    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">
-      {productos.map((p) => (
-        <ProductTile key={p.id} cuentaId={cuentaId} producto={p} />
-      ))}
+    <div>
+      {productos.length > UMBRAL_BUSCADOR ? (
+        <div className="relative mb-3">
+          <Icon
+            name="search"
+            size={16}
+            className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-3"
+          />
+          <input
+            type="text"
+            value={busqueda}
+            onChange={(e) => setBusqueda(e.target.value)}
+            placeholder="Buscar producto..."
+            className="w-full rounded-md border border-line bg-surface py-2 pl-9 pr-3 text-sm text-ink outline-none transition-shadow focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20"
+          />
+        </div>
+      ) : null}
+
+      {filtrados.length === 0 ? (
+        <p className="py-6 text-center text-sm text-ink-3">
+          Ningún producto coincide con &ldquo;{busqueda}&rdquo;.
+        </p>
+      ) : (
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">
+          {filtrados.map((p) => (
+            <ProductTile key={p.id} cuentaId={cuentaId} producto={p} />
+          ))}
+        </div>
+      )}
     </div>
   );
 }

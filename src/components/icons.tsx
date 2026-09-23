@@ -31,6 +31,7 @@ const PATHS: Record<string, string> = {
   eye: "M1 12S5 5 12 5s11 7 11 7-4 7-11 7S1 12 1 12Z M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z",
   eyeOff:
     "M3 3l18 18 M10.6 10.6a3 3 0 0 0 4.2 4.2 M6.6 6.6C3.9 8.3 2 12 2 12s4 7 11 7c1.6 0 3-.3 4.3-.9 M17.4 17.4C20.1 15.7 22 12 22 12s-1.7-3-4.6-5",
+  search: "M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14Z M21 21l-4.35-4.35",
 };
 
 export type IconName = keyof typeof PATHS;
