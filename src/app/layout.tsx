@@ -2,8 +2,8 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Stockeo — Inventario y Cuentas para Bares",
-  description: "Software de inventario, cuentas y ventas para bares",
+  title: "Stockeo — Inventario y Ventas para tu Negocio",
+  description: "Software de inventario, cuentas y ventas para tiendas y negocios pequeños",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",

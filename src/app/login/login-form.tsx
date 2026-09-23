@@ -54,7 +54,7 @@ export function LoginForm({ bares }: { bares: { id: string; nombre: string }[] }
   return (
     <form action={formAction} className="space-y-4">
       {bares.length > 0 ? (
-        <Field label="Bar">
+        <Field label="Negocio">
           <select
             ref={selectRef}
             name="bar_id"
@@ -65,7 +65,7 @@ export function LoginForm({ bares }: { bares: { id: string; nombre: string }[] }
           >
             {bares.length > 1 ? (
               <option value="" disabled>
-                Selecciona tu bar
+                Selecciona tu negocio
               </option>
             ) : null}
             {bares.map((bar) => (
@@ -86,7 +86,7 @@ export function LoginForm({ bares }: { bares: { id: string; nombre: string }[] }
             style={{ accentColor: "#22d3ee" }}
             className="h-4 w-4 rounded"
           />
-          Recordar este bar en este dispositivo
+          Recordar este negocio en este dispositivo
         </label>
       ) : null}
 

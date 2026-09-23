@@ -9,7 +9,7 @@ export default async function LoginPage({
 }) {
   const sp = await searchParams;
   const mensaje = sp.bar_inactivo
-    ? "Este bar no tiene acceso activo. Contacta al administrador."
+    ? "Este negocio no tiene acceso activo. Contacta al administrador."
     : sp.inactivo
       ? "Tu usuario está desactivado. Contacta al administrador."
       : null;
@@ -41,7 +41,7 @@ export default async function LoginPage({
           Stockeo
         </h1>
         <p className="mt-1 text-center text-xs font-medium uppercase tracking-[0.2em] text-ink-3">
-          Inventario y cuentas para bares
+          Inventario y ventas para tu negocio
         </p>
 
         {mensaje ? (

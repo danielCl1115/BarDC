@@ -55,7 +55,7 @@ export async function login(
 
     if (!bar || !bar.activo) {
       await supabase.auth.signOut();
-      return { error: "Este bar no tiene acceso activo. Contacta al administrador." };
+      return { error: "Este negocio no tiene acceso activo. Contacta al administrador." };
     }
   }
 
