@@ -43,10 +43,10 @@ export function NuevoProducto() {
         <input name="precio" type="text" inputMode="numeric" defaultValue="0" className={inputClass} />
       </Field>
       <Field label="Stock inicial">
-        <input name="stock" type="number" min="0" step="0.001" defaultValue="0" className={inputClass} />
+        <input name="stock" type="number" min="0" step="any" defaultValue="0" className={inputClass} />
       </Field>
       <Field label="Stock mínimo">
-        <input name="stock_minimo" type="number" min="0" step="0.001" defaultValue="0" className={inputClass} />
+        <input name="stock_minimo" type="number" min="0" step="any" defaultValue="0" className={inputClass} />
       </Field>
 
       {state?.error ? (
@@ -124,7 +124,7 @@ export function EditarProducto({ producto }: { producto: Producto }) {
             <input
               name="stock_minimo"
               type="number"
-              step="0.001"
+              step="any"
               defaultValue={producto.stock_minimo}
               className={inputClass}
             />

@@ -53,7 +53,7 @@ export function AjusteForm({
               name="nuevo_stock"
               type="number"
               min="0"
-              step="0.001"
+              step="any"
               defaultValue={stockActual}
               className={inputClass}
             />

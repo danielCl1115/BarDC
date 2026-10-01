@@ -49,7 +49,7 @@ export function QtyInput({
           name="cantidad"
           type="number"
           min="0"
-          step="1"
+          step="any"
           defaultValue={cantidad}
           onBlur={(e) => enviarSiCambio(e.currentTarget.value)}
           onKeyDown={(e) => {

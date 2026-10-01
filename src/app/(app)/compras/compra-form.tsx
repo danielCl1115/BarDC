@@ -95,7 +95,7 @@ export function CompraForm({ productos }: { productos: ProductoOpcion[] }) {
               <input
                 type="number"
                 min="0"
-                step="0.001"
+                step="any"
                 value={r.cantidad}
                 onChange={(e) => set(i, { cantidad: Number(e.target.value) })}
                 className={inputClass}
