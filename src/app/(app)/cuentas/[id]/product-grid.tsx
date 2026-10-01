@@ -81,7 +81,7 @@ function ProductTile({
   const sinStock = producto.stock <= 0;
 
   return (
-    <form action={agregarItemTile}>
+    <form action={agregarItemTile} className="h-full">
       <input type="hidden" name="cuenta_id" value={cuentaId} />
       <input type="hidden" name="producto_id" value={producto.id} />
       <input type="hidden" name="cantidad" value="1" />
@@ -107,7 +107,7 @@ function TileButton({
     <button
       type="submit"
       disabled={sinStock}
-      className={`flex min-h-24 w-full flex-col justify-between gap-2 rounded-xl border-2 p-3 text-left transition-all active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-40 ${color.bg} ${color.border} ${
+      className={`flex h-full min-h-24 w-full flex-col justify-between gap-2 rounded-xl border-2 p-3 text-left transition-all active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-40 ${color.bg} ${color.border} ${
         pending ? "scale-[0.97] opacity-70" : "hover:shadow-md"
       }`}
     >

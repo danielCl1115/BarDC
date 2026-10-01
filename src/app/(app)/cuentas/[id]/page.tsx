@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { requirePerfil } from "@/lib/auth";
+import { getBarActual } from "@/lib/modulos";
 import { createClient } from "@/lib/supabase/server";
 import { Button, Card, Empty, PageHeader } from "@/components/ui";
 import { fmtFecha } from "@/lib/format";
@@ -15,7 +15,7 @@ export default async function CuentaDetallePage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const perfil = await requirePerfil();
+  const { perfil, barNombre } = await getBarActual();
   const supabase = await createClient();
 
   const { data: cuentaData } = await supabase
@@ -88,7 +88,7 @@ export default async function CuentaDetallePage({
         </div>
       ) : (
         <>
-          <Receipt cuenta={cuenta} items={items} />
+          <Receipt cuenta={cuenta} items={items} barNombre={barNombre} />
           {perfil.rol === "admin" ? (
             <div className="mx-auto mt-4 flex w-full max-w-sm justify-end print:hidden">
               <ReabrirCuenta cuentaId={id} nombreCliente={cuenta.nombre_cliente} />

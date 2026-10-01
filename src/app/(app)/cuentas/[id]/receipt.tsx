@@ -17,9 +17,11 @@ function Notch() {
 export function Receipt({
   cuenta,
   items,
+  barNombre,
 }: {
   cuenta: Cuenta;
   items: CuentaItem[];
+  barNombre: string;
 }) {
   return (
     <div className="mx-auto w-full max-w-sm print:max-w-full">
@@ -27,7 +29,10 @@ export function Receipt({
 
       <div className="rounded-xl border border-ink/8 bg-surface px-6 pb-6 pt-7 shadow-[0_1px_2px_rgba(11,11,11,0.04)] print:rounded-none print:border-0 print:shadow-none">
         <div className="text-center">
-          <div className="text-[11px] font-semibold uppercase tracking-[0.2em] text-ink-3">
+          <div className="text-base font-bold uppercase tracking-wide text-ink">
+            {barNombre}
+          </div>
+          <div className="mt-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-ink-3">
             Recibo
           </div>
           <div className="mt-1 text-xl font-bold text-ink">
@@ -43,10 +48,10 @@ export function Receipt({
         <div className="space-y-2 font-mono text-[13px]">
           {items.map((it) => (
             <div key={it.id} className="flex justify-between gap-3">
-              <span className="min-w-0 flex-1 truncate text-ink-2">
-                {it.nombre_producto}{" "}
-                <span className="text-ink-3">×{it.cantidad}</span>
-              </span>
+              <div className="flex min-w-0 flex-1 items-baseline gap-1">
+                <span className="truncate text-ink-2">{it.nombre_producto}</span>
+                <span className="shrink-0 text-ink-3">×{it.cantidad}</span>
+              </div>
               <span className="shrink-0 tabular-nums text-ink">
                 {fmtMoney(it.subtotal)}
               </span>
