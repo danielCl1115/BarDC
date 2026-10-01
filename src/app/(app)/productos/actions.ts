@@ -5,11 +5,12 @@ import { z } from "zod";
 import { requireAdmin } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { mensajeDeError, type ActionState } from "@/lib/action";
+import { parsearPesos } from "@/lib/numero";
 
 const productoSchema = z.object({
   nombre: z.string().trim().min(1, "El nombre es obligatorio").max(120),
-  costo: z.coerce.number().min(0, "El costo no puede ser negativo"),
-  precio: z.coerce.number().min(0, "El precio no puede ser negativo"),
+  costo: z.preprocess(parsearPesos, z.number().min(0, "El costo no puede ser negativo")),
+  precio: z.preprocess(parsearPesos, z.number().min(0, "El precio no puede ser negativo")),
   stock: z.coerce.number().min(0, "El stock no puede ser negativo"),
   stock_minimo: z.coerce.number().min(0, "El mínimo no puede ser negativo"),
 });

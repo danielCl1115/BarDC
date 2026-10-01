@@ -5,6 +5,7 @@ import { cerrarCuenta } from "../actions";
 import { SubmitButton } from "@/components/submit-button";
 import { Field, inputClass } from "@/components/ui";
 import { fmtMoney } from "@/lib/format";
+import { parsearPesos } from "@/lib/numero";
 import type { ActionState } from "@/lib/action";
 import type { MetodoPago } from "@/lib/types";
 
@@ -16,13 +17,13 @@ export function CerrarCuenta({
   total: number;
 }) {
   const [metodo, setMetodo] = useState<MetodoPago>("efectivo");
-  const [efectivo, setEfectivo] = useState<number>(0);
+  const [efectivo, setEfectivo] = useState("");
   const [state, formAction] = useActionState<ActionState, FormData>(
     cerrarCuenta,
     null,
   );
 
-  const transferencia = Math.max(0, total - efectivo);
+  const transferencia = Math.max(0, total - parsearPesos(efectivo));
 
   return (
     <form action={formAction} className="space-y-3">
@@ -56,11 +57,10 @@ export function CerrarCuenta({
           <Field label="Efectivo" hint={`Transferencia: ${fmtMoney(transferencia)}`}>
             <input
               name="efectivo"
-              type="number"
-              min="0"
-              step="0.01"
-              value={efectivo || ""}
-              onChange={(e) => setEfectivo(Number(e.target.value))}
+              type="text"
+              inputMode="numeric"
+              value={efectivo}
+              onChange={(e) => setEfectivo(e.target.value)}
               className={`${inputClass} w-32`}
             />
           </Field>

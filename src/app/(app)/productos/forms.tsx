@@ -37,10 +37,10 @@ export function NuevoProducto() {
         </Field>
       </div>
       <Field label="Costo">
-        <input name="costo" type="number" min="0" step="0.01" defaultValue="0" className={inputClass} />
+        <input name="costo" type="text" inputMode="numeric" defaultValue="0" className={inputClass} />
       </Field>
       <Field label="Precio">
-        <input name="precio" type="number" min="0" step="0.01" defaultValue="0" className={inputClass} />
+        <input name="precio" type="text" inputMode="numeric" defaultValue="0" className={inputClass} />
       </Field>
       <Field label="Stock inicial">
         <input name="stock" type="number" min="0" step="0.001" defaultValue="0" className={inputClass} />
@@ -103,8 +103,8 @@ export function EditarProducto({ producto }: { producto: Producto }) {
             <Field label="Costo">
               <input
                 name="costo"
-                type="number"
-                step="0.01"
+                type="text"
+                inputMode="numeric"
                 defaultValue={producto.costo}
                 className={inputClass}
               />
@@ -112,8 +112,8 @@ export function EditarProducto({ producto }: { producto: Producto }) {
             <Field label="Precio">
               <input
                 name="precio"
-                type="number"
-                step="0.01"
+                type="text"
+                inputMode="numeric"
                 defaultValue={producto.precio}
                 className={inputClass}
               />

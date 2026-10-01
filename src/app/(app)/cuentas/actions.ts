@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { requirePerfil } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { mensajeDeError, type ActionState } from "@/lib/action";
+import { parsearPesos } from "@/lib/numero";
 
 export async function abrirCuenta(
   _prev: ActionState,
@@ -96,8 +97,8 @@ export async function cerrarCuenta(
   await requirePerfil();
   const cuentaId = String(formData.get("cuenta_id") ?? "");
   const metodo = String(formData.get("metodo") ?? "");
-  const efectivo = Number(formData.get("efectivo") ?? 0);
-  const transferencia = Number(formData.get("transferencia") ?? 0);
+  const efectivo = parsearPesos(formData.get("efectivo") ?? 0);
+  const transferencia = parsearPesos(formData.get("transferencia") ?? 0);
 
   if (!cuentaId) return { error: "Falta la cuenta." };
   if (!["efectivo", "transferencia", "mixto"].includes(metodo)) {

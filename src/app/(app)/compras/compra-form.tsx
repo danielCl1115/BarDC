@@ -7,12 +7,15 @@ import { Field, inputClass, buttonVariants } from "@/components/ui";
 import { Icon } from "@/components/icons";
 import { useToast } from "@/components/toast";
 import { fmtMoney } from "@/lib/format";
+import { parsearPesos } from "@/lib/numero";
 import type { ActionState } from "@/lib/action";
 
 type ProductoOpcion = { id: string; nombre: string; costo: number };
-type Renglon = { producto_id: string; cantidad: number; costo_unitario: number };
+// costo_unitario se guarda como texto mientras se edita: así se puede escribir
+// "24.000" (punto de miles) sin que cada tecla lo recorte a 24.
+type Renglon = { producto_id: string; cantidad: number; costo_unitario: string };
 
-const RENGLON_VACIO: Renglon = { producto_id: "", cantidad: 1, costo_unitario: 0 };
+const RENGLON_VACIO: Renglon = { producto_id: "", cantidad: 1, costo_unitario: "0" };
 
 export function CompraForm({ productos }: { productos: ProductoOpcion[] }) {
   const [renglones, setRenglones] = useState<Renglon[]>([{ ...RENGLON_VACIO }]);
@@ -33,7 +36,7 @@ export function CompraForm({ productos }: { productos: ProductoOpcion[] }) {
   const total = useMemo(
     () =>
       renglones.reduce(
-        (s, r) => s + Number(r.cantidad || 0) * Number(r.costo_unitario || 0),
+        (s, r) => s + Number(r.cantidad || 0) * parsearPesos(r.costo_unitario),
         0,
       ),
     [renglones],
@@ -45,9 +48,9 @@ export function CompraForm({ productos }: { productos: ProductoOpcion[] }) {
     );
   }
 
-  const itemsValidos = renglones.filter(
-    (r) => r.producto_id && r.cantidad > 0 && r.costo_unitario >= 0,
-  );
+  const itemsValidos = renglones
+    .filter((r) => r.producto_id && r.cantidad > 0 && parsearPesos(r.costo_unitario) >= 0)
+    .map((r) => ({ ...r, costo_unitario: parsearPesos(r.costo_unitario) }));
 
   return (
     <form action={formAction} className="space-y-4">
@@ -75,7 +78,7 @@ export function CompraForm({ productos }: { productos: ProductoOpcion[] }) {
                   const prod = productos.find((p) => p.id === e.target.value);
                   set(i, {
                     producto_id: e.target.value,
-                    costo_unitario: prod ? prod.costo : r.costo_unitario,
+                    costo_unitario: prod ? String(prod.costo) : r.costo_unitario,
                   });
                 }}
                 className={inputClass}
@@ -100,19 +103,16 @@ export function CompraForm({ productos }: { productos: ProductoOpcion[] }) {
             </Field>
             <Field label="Costo unitario" className="w-28">
               <input
-                type="number"
-                min="0"
-                step="0.01"
+                type="text"
+                inputMode="numeric"
                 value={r.costo_unitario}
-                onChange={(e) =>
-                  set(i, { costo_unitario: Number(e.target.value) })
-                }
+                onChange={(e) => set(i, { costo_unitario: e.target.value })}
                 className={inputClass}
               />
             </Field>
             <div className="flex items-center gap-2 pb-2">
               <span className="min-w-24 text-right text-sm font-medium text-ink">
-                {fmtMoney(r.cantidad * r.costo_unitario)}
+                {fmtMoney(r.cantidad * parsearPesos(r.costo_unitario))}
               </span>
               <button
                 type="button"
