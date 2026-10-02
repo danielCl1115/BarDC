@@ -15,6 +15,7 @@ const LINKS: { href: string; label: string; icon: IconName; roles: Rol[]; modulo
   { href: "/compras", label: "Compras", icon: "truck", roles: ["admin"], modulo: "compras" },
   { href: "/inventario", label: "Inventario", icon: "layers", roles: ["admin"], modulo: "inventario" },
   { href: "/reportes", label: "Reportes", icon: "chart", roles: ["admin"], modulo: "reportes" },
+  { href: "/ganancias", label: "Ganancias", icon: "trend", roles: ["admin"], modulo: "ganancias" },
   { href: "/historial", label: "Historial", icon: "clock", roles: ["admin"], modulo: "historial" },
   { href: "/usuarios", label: "Usuarios", icon: "users", roles: ["admin"], modulo: "usuarios" },
 ];

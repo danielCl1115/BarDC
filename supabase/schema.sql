@@ -451,6 +451,13 @@ begin
        'Cuenta ' || v_cta.nombre_cliente, auth.uid(), public.mi_bar_id());
   end loop;
 
+  -- Congela el costo de cada renglón en el momento de cobrar: así la ganancia
+  -- de esta venta no cambia aunque el costo del producto suba o baje después.
+  update public.cuenta_items ci
+  set costo_unitario = p.costo
+  from public.productos p
+  where ci.cuenta_id = p_cuenta_id and p.id = ci.producto_id;
+
   update public.cuentas
   set estado             = 'cerrada',
       metodo_pago        = p_metodo,
@@ -883,3 +890,150 @@ create index if not exists historial_bar_idx              on public.historial (b
 -- =============================================================================
 alter table public.bares add column if not exists modulos jsonb not null default
   '["productos","compras","inventario","reportes","historial","usuarios"]'::jsonb;
+
+
+-- =============================================================================
+--  12. GANANCIAS  (módulo "ganancias")
+--      Ganancia = lo vendido - lo que costó. Para que sea real, cada renglón
+--      de una cuenta guarda el COSTO del producto en el momento de cobrar
+--      (cerrar_cuenta lo congela). El costo del producto es el de la última
+--      compra registrada.  Solo administradores pueden consultarlo.
+-- =============================================================================
+alter table public.cuenta_items
+  add column if not exists costo_unitario numeric(12,2) check (costo_unitario >= 0);
+
+-- Ventas ya cerradas antes de esta función: se aproximan con el costo actual
+-- del producto (de ahí en adelante cada cobro guarda su costo exacto).
+update public.cuenta_items ci
+set costo_unitario = p.costo
+from public.productos p, public.cuentas c
+where ci.producto_id = p.id
+  and ci.cuenta_id = c.id
+  and c.estado = 'cerrada'
+  and ci.costo_unitario is null;
+
+-- Negocios nuevos nacen con el módulo incluido
+alter table public.bares alter column modulos set default
+  '["productos","compras","inventario","reportes","ganancias","historial","usuarios"]'::jsonb;
+
+-- 12.1  Ventas, costo y # de cuentas por periodo (día / semana / mes / año) ---
+--       Fechas y cortes en hora de Colombia. La semana empieza el lunes y su
+--       clave es la fecha de ese lunes.
+create or replace function public.ganancias_por_periodo(
+  p_desde date, p_hasta date, p_bucket text
+)
+returns table (clave text, n_cuentas bigint, ventas numeric, costo numeric)
+language plpgsql
+stable
+security definer
+set search_path = public
+as $$
+declare
+  v_ini timestamptz;
+  v_fin timestamptz;
+begin
+  if not public.es_admin() then
+    raise exception 'Solo un administrador puede ver las ganancias';
+  end if;
+  if p_bucket not in ('dia', 'semana', 'mes', 'anio') then
+    raise exception 'Agrupación inválida';
+  end if;
+
+  v_ini := p_desde::timestamp at time zone 'America/Bogota';
+  v_fin := (p_hasta + 1)::timestamp at time zone 'America/Bogota';
+
+  return query
+  select
+    case p_bucket
+      when 'dia'    then to_char(c.cerrada_en at time zone 'America/Bogota', 'YYYY-MM-DD')
+      when 'semana' then to_char(date_trunc('week', c.cerrada_en at time zone 'America/Bogota'), 'YYYY-MM-DD')
+      when 'mes'    then to_char(c.cerrada_en at time zone 'America/Bogota', 'YYYY-MM')
+      else               to_char(c.cerrada_en at time zone 'America/Bogota', 'YYYY')
+    end,
+    count(distinct c.id),
+    coalesce(sum(ci.cantidad * ci.precio_unitario), 0)::numeric,
+    coalesce(sum(ci.cantidad * coalesce(ci.costo_unitario, 0)), 0)::numeric
+  from public.cuentas c
+  join public.cuenta_items ci on ci.cuenta_id = c.id
+  where c.bar_id = public.mi_bar_id()
+    and c.estado = 'cerrada'
+    and c.cerrada_en >= v_ini
+    and c.cerrada_en <  v_fin
+  group by 1
+  order by 1;
+end;
+$$;
+
+-- 12.2  Ventas, costo y cantidad por producto en un rango de fechas ---------
+create or replace function public.ganancias_por_producto(p_desde date, p_hasta date)
+returns table (producto_id uuid, nombre text, cantidad numeric, ventas numeric, costo numeric)
+language plpgsql
+stable
+security definer
+set search_path = public
+as $$
+declare
+  v_ini timestamptz;
+  v_fin timestamptz;
+begin
+  if not public.es_admin() then
+    raise exception 'Solo un administrador puede ver las ganancias';
+  end if;
+
+  v_ini := p_desde::timestamp at time zone 'America/Bogota';
+  v_fin := (p_hasta + 1)::timestamp at time zone 'America/Bogota';
+
+  return query
+  select
+    ci.producto_id,
+    max(ci.nombre_producto),
+    sum(ci.cantidad)::numeric,
+    coalesce(sum(ci.cantidad * ci.precio_unitario), 0)::numeric,
+    coalesce(sum(ci.cantidad * coalesce(ci.costo_unitario, 0)), 0)::numeric
+  from public.cuentas c
+  join public.cuenta_items ci on ci.cuenta_id = c.id
+  where c.bar_id = public.mi_bar_id()
+    and c.estado = 'cerrada'
+    and c.cerrada_en >= v_ini
+    and c.cerrada_en <  v_fin
+  group by ci.producto_id
+  order by sum(ci.cantidad * (ci.precio_unitario - coalesce(ci.costo_unitario, 0))) desc
+  limit 500;
+end;
+$$;
+
+-- 12.3  Foto del inventario actual: cuánto costó y cuánto dejaría vendido ---
+create or replace function public.ganancias_stock()
+returns table (productos bigint, valor_costo numeric, valor_venta numeric)
+language plpgsql
+stable
+security definer
+set search_path = public
+as $$
+begin
+  if not public.es_admin() then
+    raise exception 'Solo un administrador puede ver las ganancias';
+  end if;
+
+  return query
+  select
+    count(*),
+    coalesce(sum(p.stock * p.costo), 0)::numeric,
+    coalesce(sum(p.stock * p.precio), 0)::numeric
+  from public.productos p
+  where p.bar_id = public.mi_bar_id()
+    and p.activo
+    and p.stock > 0;
+end;
+$$;
+
+revoke execute on function
+  public.ganancias_por_periodo(date, date, text),
+  public.ganancias_por_producto(date, date),
+  public.ganancias_stock()
+from public, anon;
+grant execute on function
+  public.ganancias_por_periodo(date, date, text),
+  public.ganancias_por_producto(date, date),
+  public.ganancias_stock()
+to authenticated;

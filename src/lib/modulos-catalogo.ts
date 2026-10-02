@@ -8,6 +8,7 @@ export const MODULOS_OPCIONALES = [
   { id: "compras", label: "Compras" },
   { id: "inventario", label: "Inventario" },
   { id: "reportes", label: "Reportes" },
+  { id: "ganancias", label: "Ganancias" },
   { id: "historial", label: "Historial" },
   { id: "usuarios", label: "Usuarios" },
 ] as const;
