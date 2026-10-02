@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { fmtDiaYMD, fmtMesAnio } from "@/lib/format";
 import { calcularRango } from "@/lib/periodos";
-import { diasEntre, primerDiaMes, sumarDias } from "@/lib/tz";
+import { diasEntre, inicioDiaUTC, primerDiaMes, sumarDias } from "@/lib/tz";
 
 export type GBucket = "dia" | "semana" | "mes" | "anio";
 
@@ -123,6 +123,24 @@ export function bucketSeguro(desde: string, hasta: string, bucket: GBucket): GBu
   return orden[i];
 }
 
+export type FiltrosG = { periodo: GPeriodo; desde: string; hasta: string; bucket: GBucket };
+
+/** Lee y sanea los filtros de la URL (los usan la pantalla y el Excel, para que coincidan siempre). */
+export function resolverFiltros(
+  sp: { periodo?: string; desde?: string; hasta?: string; agrupar?: string },
+  hoy: string,
+): FiltrosG {
+  const periodo: GPeriodo = esGPeriodo(sp.periodo) ? sp.periodo : "30d";
+  const { desde, hasta } = calcularRangoG(
+    periodo,
+    hoy,
+    fechaValida(sp.desde) ? sp.desde : undefined,
+    fechaValida(sp.hasta) ? sp.hasta : undefined,
+  );
+  const bucket = bucketSeguro(desde, hasta, esGBucket(sp.agrupar) ? sp.agrupar : bucketAutoG(desde, hasta));
+  return { periodo, desde, hasta, bucket };
+}
+
 // ----------------------------------------------------------------------------
 // Datos
 // ----------------------------------------------------------------------------
@@ -213,6 +231,76 @@ export async function cargarStock(): Promise<ResumenStock> {
   const valorCosto = num(f?.valor_costo);
   const valorVenta = num(f?.valor_venta);
   return { productos: num(f?.productos), valorCosto, valorVenta, gananciaEsperada: valorVenta - valorCosto };
+}
+
+export type RenglonVenta = {
+  fecha: string | null;
+  cliente: string;
+  metodo: string | null;
+  producto: string;
+  cantidad: number;
+  precio: number;
+  costo: number;
+};
+
+export const MAX_CUENTAS_DETALLE = 10_000;
+const PAGINA = 1000; // tope de filas por consulta de la API
+
+/** Cada renglón vendido (una fila por producto de cada cuenta cobrada) para el Excel. */
+export async function cargarDetalle(
+  desde: string,
+  hasta: string,
+): Promise<{ renglones: RenglonVenta[]; truncado: boolean }> {
+  const supabase = await createClient();
+  const renglones: RenglonVenta[] = [];
+  let truncado = false;
+
+  for (let desdeFila = 0; ; desdeFila += PAGINA) {
+    if (desdeFila >= MAX_CUENTAS_DETALLE) {
+      truncado = true;
+      break;
+    }
+    const { data, error } = await supabase
+      .from("cuentas")
+      .select(
+        "nombre_cliente, metodo_pago, cerrada_en, cuenta_items(nombre_producto, cantidad, precio_unitario, costo_unitario)",
+      )
+      .eq("estado", "cerrada")
+      .gte("cerrada_en", inicioDiaUTC(desde).toISOString())
+      .lt("cerrada_en", inicioDiaUTC(sumarDias(hasta, 1)).toISOString())
+      .order("cerrada_en", { ascending: true })
+      .order("id", { ascending: true })
+      .range(desdeFila, desdeFila + PAGINA - 1);
+    if (error) throw new Error(error.message);
+
+    const cuentas = (data ?? []) as unknown as {
+      nombre_cliente: string;
+      metodo_pago: string | null;
+      cerrada_en: string | null;
+      cuenta_items: {
+        nombre_producto: string;
+        cantidad: number;
+        precio_unitario: number;
+        costo_unitario: number | null;
+      }[];
+    }[];
+
+    for (const c of cuentas) {
+      for (const it of c.cuenta_items ?? []) {
+        renglones.push({
+          fecha: c.cerrada_en,
+          cliente: c.nombre_cliente,
+          metodo: c.metodo_pago,
+          producto: it.nombre_producto,
+          cantidad: num(it.cantidad),
+          precio: num(it.precio_unitario),
+          costo: num(it.costo_unitario),
+        });
+      }
+    }
+    if (cuentas.length < PAGINA) break;
+  }
+  return { renglones, truncado };
 }
 
 // ----------------------------------------------------------------------------

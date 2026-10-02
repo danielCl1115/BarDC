@@ -19,21 +19,15 @@ import {
   G_BUCKETS,
   G_PERIODOS,
   armarSerie,
-  bucketAutoG,
-  bucketSeguro,
-  calcularRangoG,
   cargarPorPeriodo,
   cargarPorProducto,
   cargarStock,
-  esGBucket,
-  esGPeriodo,
-  fechaValida,
   margenPct,
   rangoAnterior,
+  resolverFiltros,
   sumarTotales,
   variacionPct,
   type GBucket,
-  type GPeriodo,
 } from "@/lib/ganancias";
 
 const pct = new Intl.NumberFormat("es-CO", { maximumFractionDigits: 1 });
@@ -159,19 +153,8 @@ export default async function GananciasPage({
   await requireModulo("ganancias");
   const sp = await searchParams;
 
-  const periodo: GPeriodo = esGPeriodo(sp.periodo) ? sp.periodo : "30d";
   const hoy = hoyYMD();
-  const { desde, hasta } = calcularRangoG(
-    periodo,
-    hoy,
-    fechaValida(sp.desde) ? sp.desde : undefined,
-    fechaValida(sp.hasta) ? sp.hasta : undefined,
-  );
-  const bucket: GBucket = bucketSeguro(
-    desde,
-    hasta,
-    esGBucket(sp.agrupar) ? sp.agrupar : bucketAutoG(desde, hasta),
-  );
+  const { periodo, desde, hasta, bucket } = resolverFiltros(sp, hoy);
   const previo = rangoAnterior(desde, hasta);
 
   let datos;
@@ -256,22 +239,32 @@ export default async function GananciasPage({
           </form>
         ) : null}
 
-        <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-ink/8 pt-4">
-          <span className="text-sm text-ink-3">Agrupar por:</span>
-          {G_BUCKETS.map((b) => (
-            <Link
-              key={b.valor}
-              href={`/ganancias${qs({
-                periodo,
-                desde: periodo === "personalizado" ? desde : undefined,
-                hasta: periodo === "personalizado" ? hasta : undefined,
-                agrupar: b.valor,
-              })}`}
-              className={pill(bucket === b.valor)}
-            >
-              {b.etiqueta}
-            </Link>
-          ))}
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-ink/8 pt-4">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-sm text-ink-3">Agrupar por:</span>
+            {G_BUCKETS.map((b) => (
+              <Link
+                key={b.valor}
+                href={`/ganancias${qs({
+                  periodo,
+                  desde: periodo === "personalizado" ? desde : undefined,
+                  hasta: periodo === "personalizado" ? hasta : undefined,
+                  agrupar: b.valor,
+                })}`}
+                className={pill(bucket === b.valor)}
+              >
+                {b.etiqueta}
+              </Link>
+            ))}
+          </div>
+
+          <a
+            href={`/ganancias/exportar${qs({ periodo, desde, hasta, agrupar: bucket })}`}
+            className={`inline-flex items-center justify-center gap-1.5 rounded-lg px-4 py-2 text-sm font-medium transition-colors ${buttonVariants.secondary}`}
+          >
+            <Icon name="download" size={16} />
+            Exportar a Excel
+          </a>
         </div>
       </Card>
 
@@ -317,8 +310,15 @@ export default async function GananciasPage({
               {fmtMoney(tot.ganancia)}
             </p>
             <p className="mt-4 inline-flex flex-wrap items-center gap-x-2 rounded-full bg-white/15 px-3 py-1 text-sm backdrop-blur-sm">
-              <Delta actual={tot.ganancia} anterior={ant.ganancia} />
-              <span className="text-white/70">vs periodo anterior ({rangoTexto(previo.desde, previo.hasta, hoy)})</span>
+              {ant.ventas === 0 ? (
+                <span className="text-white/80">Sin ventas en el periodo anterior</span>
+              ) : (
+                <>
+                  <Delta actual={tot.ganancia} anterior={ant.ganancia} />
+                  <span className="text-white/70">vs periodo anterior</span>
+                </>
+              )}
+              <span className="text-white/60">({rangoTexto(previo.desde, previo.hasta, hoy)})</span>
             </p>
           </div>
           <AnilloMargen valor={tot.margen} />
