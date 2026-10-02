@@ -193,6 +193,8 @@ export default async function GananciasPage({
     return { ...p, ganancia, margen: margenPct(p.ventas, ganancia) };
   });
   const sinCosto = filasProducto.filter((p) => p.costo === 0 && p.ventas > 0);
+  // Vendidos por debajo de lo que costaron: casi siempre es un precio o un costo mal escrito
+  const bajoCosto = filasProducto.filter((p) => p.costo > 0 && p.ventas < p.costo);
   const top = filasProducto.slice(0, 10);
   const estrella = filasProducto.find((p) => p.ventas > 0 && p.ganancia > 0);
   const conCosto = filasProducto.filter((p) => p.ventas > 0 && p.costo > 0);
@@ -287,6 +289,32 @@ export default async function GananciasPage({
               Productos
             </Link>{" "}
             o registra una compra.
+          </p>
+        </div>
+      ) : null}
+
+      {bajoCosto.length > 0 ? (
+        <div className="rounded-xl border border-warn/30 bg-warn/10 p-4 text-sm text-ink">
+          <p className="font-semibold text-warn">
+            {bajoCosto.length === 1
+              ? "1 producto se vendió por debajo de su costo"
+              : `${bajoCosto.length} productos se vendieron por debajo de su costo`}
+          </p>
+          <ul className="mt-2 space-y-1 text-ink-2">
+            {bajoCosto.slice(0, 5).map((p) => (
+              <li key={p.producto_id}>
+                <span className="font-medium text-ink">{p.nombre}</span>: vendiste {fmtMoney(p.ventas)} y te costó{" "}
+                {fmtMoney(p.costo)}
+              </li>
+            ))}
+            {bajoCosto.length > 5 ? <li>y {bajoCosto.length - 5} más</li> : null}
+          </ul>
+          <p className="mt-2 text-ink-2">
+            Puede ser un precio o un costo mal escrito. Revísalos en{" "}
+            <Link href="/productos" className="font-medium text-brand-700 underline">
+              Productos
+            </Link>
+            ; si el producto ya está bien hoy, las ventas anteriores se corrigen con soporte.
           </p>
         </div>
       ) : null}
