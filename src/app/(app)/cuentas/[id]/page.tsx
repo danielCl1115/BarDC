@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { Button, Card, Empty, PageHeader } from "@/components/ui";
 import { fmtFecha } from "@/lib/format";
 import { ProductGrid } from "./product-grid";
+import { CuentaProvider } from "./cuenta-provider";
 import { Ticket } from "./ticket";
 import { Receipt } from "./receipt";
 import { ReabrirCuenta } from "./reabrir-cuenta";
@@ -56,25 +57,22 @@ export default async function CuentaDetallePage({
       </div>
 
       {abierta ? (
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
-          <div className="order-2 min-w-0 flex-1 lg:order-1">
-            <Card title="Toca un producto para agregarlo">
-              {productos.length === 0 ? (
-                <Empty>No hay productos activos. Créalos en Productos.</Empty>
-              ) : (
-                <ProductGrid cuentaId={id} productos={productos} />
-              )}
-            </Card>
+        <CuentaProvider items={items}>
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
+            <div className="order-2 min-w-0 flex-1 lg:order-1">
+              <Card title="Toca un producto para agregarlo">
+                {productos.length === 0 ? (
+                  <Empty>No hay productos activos. Créalos en Productos.</Empty>
+                ) : (
+                  <ProductGrid cuentaId={id} productos={productos} />
+                )}
+              </Card>
+            </div>
+            <div className="order-1 lg:order-2 lg:w-[360px] lg:shrink-0">
+              <Ticket cuentaId={id} nombreCliente={cuenta.nombre_cliente} />
+            </div>
           </div>
-          <div className="order-1 lg:order-2 lg:w-[360px] lg:shrink-0">
-            <Ticket
-              cuentaId={id}
-              nombreCliente={cuenta.nombre_cliente}
-              items={items}
-              total={cuenta.total}
-            />
-          </div>
-        </div>
+        </CuentaProvider>
       ) : (
         <>
           <Receipt cuenta={cuenta} items={items} barNombre={barNombre} />

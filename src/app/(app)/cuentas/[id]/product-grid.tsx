@@ -2,7 +2,9 @@
 
 import { useMemo, useState } from "react";
 import { useFormStatus } from "react-dom";
-import { agregarItemTile } from "../actions";
+import { agregarItem } from "../actions";
+import { useToast } from "@/components/toast";
+import { useCuenta } from "./cuenta-provider";
 import { fmtMoney } from "@/lib/format";
 import { tileColor } from "@/lib/tile-colors";
 import { Icon } from "@/components/icons";
@@ -79,9 +81,17 @@ function ProductTile({
 }) {
   const color = tileColor(producto.id);
   const sinStock = producto.stock <= 0;
+  const { agregar } = useCuenta();
+  const { mostrarToast } = useToast();
+
+  async function tocar(formData: FormData) {
+    agregar(producto); // el renglón y el total aparecen al instante
+    const r = await agregarItem(null, formData);
+    if (r?.error) mostrarToast(r.error, "crit"); // si falla, la pantalla vuelve sola a lo guardado
+  }
 
   return (
-    <form action={agregarItemTile} className="h-full">
+    <form action={tocar} className="h-full">
       <input type="hidden" name="cuenta_id" value={cuentaId} />
       <input type="hidden" name="producto_id" value={producto.id} />
       <input type="hidden" name="cantidad" value="1" />
