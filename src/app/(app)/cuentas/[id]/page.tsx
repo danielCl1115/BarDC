@@ -15,36 +15,25 @@ export default async function CuentaDetallePage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const { perfil, barNombre } = await getBarActual();
   const supabase = await createClient();
 
-  const { data: cuentaData } = await supabase
-    .from("cuentas")
-    .select("*")
-    .eq("id", id)
-    .maybeSingle();
+  // Todo se pide a la vez (un solo viaje a la base en vez de tres seguidos).
+  // Los productos solo se usan si la cuenta sigue abierta; pedirlos igual
+  // cuesta menos que esperar a saberlo.
+  const [{ perfil, barNombre }, { data: cuentaData }, { data: itemsData }, { data: productosData }] =
+    await Promise.all([
+      getBarActual(),
+      supabase.from("cuentas").select("*").eq("id", id).maybeSingle(),
+      supabase.from("cuenta_items").select("*").eq("cuenta_id", id).order("created_at"),
+      supabase.from("productos").select("id, nombre, precio, stock").eq("activo", true).order("nombre"),
+    ]);
+
   const cuenta = cuentaData as Cuenta | null;
   if (!cuenta) notFound();
 
   const abierta = cuenta.estado === "abierta";
-
-  const [{ data: itemsData }, { data: productosData }] = await Promise.all([
-    supabase
-      .from("cuenta_items")
-      .select("*")
-      .eq("cuenta_id", id)
-      .order("created_at"),
-    abierta
-      ? supabase
-          .from("productos")
-          .select("id, nombre, precio, stock")
-          .eq("activo", true)
-          .order("nombre")
-      : Promise.resolve({ data: [] as Pick<Producto, "id" | "nombre" | "precio" | "stock">[] }),
-  ]);
-
   const items = (itemsData ?? []) as CuentaItem[];
-  const productos = (productosData ?? []) as Pick<
+  const productos = (abierta ? (productosData ?? []) : []) as Pick<
     Producto,
     "id" | "nombre" | "precio" | "stock"
   >[];

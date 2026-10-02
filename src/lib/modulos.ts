@@ -1,7 +1,6 @@
 import { cache } from "react";
 import { redirect } from "next/navigation";
-import { requirePerfil } from "@/lib/auth";
-import { createClient } from "@/lib/supabase/server";
+import { requireSesion } from "@/lib/auth";
 import { TODOS_LOS_MODULOS, type ModuloId } from "@/lib/modulos-catalogo";
 
 export { MODULOS_OPCIONALES, TODOS_LOS_MODULOS } from "@/lib/modulos-catalogo";
@@ -12,20 +11,12 @@ export type { ModuloId } from "@/lib/modulos-catalogo";
  * página gateada comparten esta misma consulta en vez de repetirla.
  */
 export const getBarActual = cache(async () => {
-  const perfil = await requirePerfil();
-  const supabase = await createClient();
-  const { data: bar } = await supabase
-    .from("bares")
-    .select("nombre, activo, modulos")
-    .eq("id", perfil.bar_id)
-    .single();
+  const { perfil, bar } = await requireSesion();
 
-  if (bar && !bar.activo) {
-    await supabase.auth.signOut();
-    redirect("/login?bar_inactivo=1");
-  }
+  // /salir cierra la sesión de verdad (aquí no se pueden borrar cookies)
+  if (bar && !bar.activo) redirect("/salir?m=bar_inactivo");
 
-  const modulos = (bar?.modulos as ModuloId[] | null) ?? TODOS_LOS_MODULOS;
+  const modulos = bar?.modulos ?? TODOS_LOS_MODULOS;
   return { perfil, barNombre: bar?.nombre ?? "Stockeo", modulos };
 });
 

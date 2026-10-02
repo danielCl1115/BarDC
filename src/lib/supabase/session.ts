@@ -39,9 +39,11 @@ export async function updateSession(request: NextRequest) {
     },
   });
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // getClaims verifica la firma de la sesión aquí mismo (sin viajar a Supabase
+  // Auth) y renueva el token si ya venció. Ahorra un viaje en cada petición.
+  const { data: claimsData } = await supabase.auth.getClaims();
+  const claims = claimsData?.claims;
+  const user = claims ? { email: typeof claims.email === "string" ? claims.email : undefined } : null;
 
   const isPublic = PUBLIC_PATHS.some((p) => pathname.startsWith(p));
 
