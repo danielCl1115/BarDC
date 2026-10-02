@@ -41,7 +41,7 @@ function qs(params: Record<string, string | undefined>): string {
 }
 
 const pill = (activo: boolean) =>
-  `rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors ${
+  `rounded-lg border px-2.5 py-1 text-[13px] font-medium transition-colors sm:px-3 sm:py-1.5 sm:text-sm ${
     activo
       ? "border-brand-500 bg-brand-500 text-white"
       : "border-ink/15 bg-surface text-ink-2 hover:bg-plane"
@@ -213,7 +213,7 @@ export default async function GananciasPage({
       />
 
       <Card title="Filtros">
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-1.5 sm:gap-2">
           {G_PERIODOS.map((p) => (
             <Link key={p.valor} href={`/ganancias${qs({ periodo: p.valor })}`} className={pill(periodo === p.valor)}>
               {p.etiqueta}
@@ -240,8 +240,8 @@ export default async function GananciasPage({
         ) : null}
 
         <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-ink/8 pt-4">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-sm text-ink-3">Agrupar por:</span>
+          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+            <span className="text-[13px] text-ink-3 sm:text-sm">Agrupar por:</span>
             {G_BUCKETS.map((b) => (
               <Link
                 key={b.valor}
@@ -260,7 +260,7 @@ export default async function GananciasPage({
 
           <a
             href={`/ganancias/exportar${qs({ periodo, desde, hasta, agrupar: bucket })}`}
-            className={`inline-flex items-center justify-center gap-1.5 rounded-lg px-4 py-2 text-sm font-medium transition-colors ${buttonVariants.secondary}`}
+            className={`inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-1.5 text-[13px] font-medium transition-colors sm:px-4 sm:py-2 sm:text-sm ${buttonVariants.secondary}`}
           >
             <Icon name="download" size={16} />
             Exportar a Excel
@@ -447,13 +447,13 @@ export default async function GananciasPage({
             {top.length > 0 ? <GananciaProductosChart data={top} /> : null}
 
             <div className="mt-6 overflow-x-auto">
-              <table className="w-full min-w-[560px] text-sm">
+              <table className="w-full text-sm sm:min-w-[560px]">
                 <thead>
                   <tr className="text-left text-ink-3">
                     <th className="pb-2 pr-4 font-medium">Producto</th>
-                    <th className="pb-2 pr-4 text-right font-medium">Vendidos</th>
-                    <th className="pb-2 pr-4 text-right font-medium">Ventas</th>
-                    <th className="pb-2 pr-4 text-right font-medium">Costo</th>
+                    <th className="hidden sm:table-cell pb-2 pr-4 text-right font-medium">Vendidos</th>
+                    <th className="hidden sm:table-cell pb-2 pr-4 text-right font-medium">Ventas</th>
+                    <th className="hidden sm:table-cell pb-2 pr-4 text-right font-medium">Costo</th>
                     <th className="pb-2 pr-4 text-right font-medium">Ganancia</th>
                     <th className="pb-2 text-right font-medium">Margen</th>
                   </tr>
@@ -462,9 +462,9 @@ export default async function GananciasPage({
                   {filasProducto.slice(0, 50).map((p) => (
                     <tr key={p.producto_id} className="border-t border-ink/6">
                       <td className="py-3 pr-4 font-medium text-ink">{p.nombre}</td>
-                      <td className="py-3 pr-4 text-right">{num.format(p.cantidad)}</td>
-                      <td className="py-3 pr-4 text-right">{fmtMoney(p.ventas)}</td>
-                      <td className="py-3 pr-4 text-right">{fmtMoney(p.costo)}</td>
+                      <td className="hidden sm:table-cell py-3 pr-4 text-right">{num.format(p.cantidad)}</td>
+                      <td className="hidden sm:table-cell py-3 pr-4 text-right">{fmtMoney(p.ventas)}</td>
+                      <td className="hidden sm:table-cell py-3 pr-4 text-right">{fmtMoney(p.costo)}</td>
                       <td className="py-3 pr-4 text-right font-medium text-ink">{fmtMoney(p.ganancia)}</td>
                       <td className="py-3 text-right">
                         {p.costo === 0 ? (
@@ -494,14 +494,14 @@ export default async function GananciasPage({
             }
           >
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[560px] text-sm">
+              <table className="w-full text-[13px] sm:min-w-[560px] sm:text-sm">
                 <thead>
                   <tr className="text-left text-ink-3">
-                    <th className="pb-2 pr-4 font-medium">{nb.uno.charAt(0).toUpperCase() + nb.uno.slice(1)}</th>
-                    <th className="pb-2 pr-4 text-right font-medium">Cuentas</th>
-                    <th className="pb-2 pr-4 text-right font-medium">Ventas</th>
-                    <th className="pb-2 pr-4 text-right font-medium">Costo</th>
-                    <th className="pb-2 pr-4 text-right font-medium">Ganancia</th>
+                    <th className="pb-2 pr-2 sm:pr-4 font-medium">{nb.uno.charAt(0).toUpperCase() + nb.uno.slice(1)}</th>
+                    <th className="hidden sm:table-cell pb-2 pr-2 sm:pr-4 text-right font-medium">Cuentas</th>
+                    <th className="pb-2 pr-2 sm:pr-4 text-right font-medium">Ventas</th>
+                    <th className="hidden sm:table-cell pb-2 pr-2 sm:pr-4 text-right font-medium">Costo</th>
+                    <th className="pb-2 pr-2 sm:pr-4 text-right font-medium">Ganancia</th>
                     <th className="pb-2 text-right font-medium">Margen</th>
                   </tr>
                 </thead>
@@ -511,11 +511,11 @@ export default async function GananciasPage({
                     .reverse()
                     .map((p) => (
                       <tr key={p.clave} className="border-t border-ink/6">
-                        <td className="py-3 pr-4">{p.rango}</td>
-                        <td className="py-3 pr-4 text-right">{p.cuentas}</td>
-                        <td className="py-3 pr-4 text-right">{fmtMoney(p.ventas)}</td>
-                        <td className="py-3 pr-4 text-right">{fmtMoney(p.costo)}</td>
-                        <td className="py-3 pr-4 text-right font-medium text-ink">{fmtMoney(p.ganancia)}</td>
+                        <td className="whitespace-nowrap py-3 pr-2 sm:pr-4">{p.rango}</td>
+                        <td className="hidden sm:table-cell py-3 pr-2 sm:pr-4 text-right">{p.cuentas}</td>
+                        <td className="py-3 pr-2 sm:pr-4 text-right">{fmtMoney(p.ventas)}</td>
+                        <td className="hidden sm:table-cell py-3 pr-2 sm:pr-4 text-right">{fmtMoney(p.costo)}</td>
+                        <td className="py-3 pr-2 sm:pr-4 text-right font-medium text-ink">{fmtMoney(p.ganancia)}</td>
                         <td className="py-3 text-right">
                           {p.margen === null ? (
                             <span className="text-ink-3">—</span>
@@ -528,11 +528,11 @@ export default async function GananciasPage({
                 </tbody>
                 <tfoot>
                   <tr className="border-t-2 border-ink/15 font-semibold text-ink">
-                    <td className="pt-3 pr-4">Total</td>
-                    <td className="pt-3 pr-4 text-right">{tot.cuentas}</td>
-                    <td className="pt-3 pr-4 text-right">{fmtMoney(tot.ventas)}</td>
-                    <td className="pt-3 pr-4 text-right">{fmtMoney(tot.costo)}</td>
-                    <td className="pt-3 pr-4 text-right">{fmtMoney(tot.ganancia)}</td>
+                    <td className="pt-3 pr-2 sm:pr-4">Total</td>
+                    <td className="hidden sm:table-cell pt-3 pr-2 sm:pr-4 text-right">{tot.cuentas}</td>
+                    <td className="pt-3 pr-2 sm:pr-4 text-right">{fmtMoney(tot.ventas)}</td>
+                    <td className="hidden sm:table-cell pt-3 pr-2 sm:pr-4 text-right">{fmtMoney(tot.costo)}</td>
+                    <td className="pt-3 pr-2 sm:pr-4 text-right">{fmtMoney(tot.ganancia)}</td>
                     <td className="pt-3 text-right">{pct.format(tot.margen)}%</td>
                   </tr>
                 </tfoot>
